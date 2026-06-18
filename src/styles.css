@@ -246,6 +246,10 @@ body.resizing-col {
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #1a3a4a 0%, #0d2137 100%);
+  /* The rail is ALWAYS dark, independent of theme. Pin the ink token so all
+     descendant text stays light in dark mode too (it would otherwise flip to
+     near-black via [data-theme="dark"]). */
+  --sand-light: #e9f2ee;
   color: var(--sand-light);
   overflow: hidden;
 }
@@ -703,7 +707,7 @@ body.resizing-col {
 .xnode-insight {
   background: #25463f;
   border-left-color: var(--seafoam);
-  color: var(--sand-light);
+  color: #e9f2ee; /* fixed light — card is always dark, so don't use a theme token */
 }
 .xnode-top {
   display: flex;
@@ -3256,7 +3260,7 @@ body.resizing-col {
 }
 /* picker uses light surfaces, so re-skin the dark-diver custom input + browse link */
 .lenspicker .diver-custom input {
-  background: var(--sand-light);
+  background: rgba(0, 0, 0, 0.16);
   border-color: var(--driftwood);
   color: var(--text-dark);
 }
