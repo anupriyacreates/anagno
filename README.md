@@ -9,6 +9,10 @@ can scan for patterns — loops, tensions, and leverage points.
 Built for product designers, user researchers, and PMs in the messy,
 pre-solution phase.
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/anupriyacreates/anagno)
+
+> After deploying, set `ANTHROPIC_API_KEY` (a **fresh** key) as a secret env var in the Render dashboard.
+
 ## The flow
 
 1. **Dive panel** — set your research context, then ask a question with one or more

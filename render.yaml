@@ -7,7 +7,8 @@ services:
     name: anagno
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build
+    # --include=dev so vite (a devDependency) is available even with NODE_ENV=production
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm start
     envVars:
       - key: ANTHROPIC_API_KEY
