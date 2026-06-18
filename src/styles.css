@@ -1031,7 +1031,7 @@ body.resizing-col {
   font-size: 13.5px;
 }
 .surface-empty-sub {
-  color: var(--driftwood);
+  color: var(--text-mid);
   font-size: 12.5px !important;
 }
 .surface-foot {
@@ -3025,21 +3025,40 @@ body.resizing-col {
   color: #fff;
 }
 
-/* composer: attached-lens bar + input */
+/* composer: a single Claude-style box — lens chips + input + action bar */
 .chat-composer {
   flex: 0 0 auto;
-  border-top: 1px solid var(--sand-mid);
+  margin: 10px 12px 14px;
+  border: 1px solid var(--driftwood);
+  border-radius: 16px;
+  background: var(--paper);
+  padding: 10px 12px;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
-.chat-composer .chat-input-row {
-  border-top: none;
-  padding-top: 8px;
+.chat-composer:focus-within {
+  border-color: var(--ocean-blue);
+  box-shadow: 0 0 0 3px rgba(123, 191, 181, 0.18);
+}
+.chat-composer.is-disabled {
+  opacity: 0.65;
+}
+.chat-composer .chat-input {
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 2px 2px 0;
+}
+.chat-composer .chat-input:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
 }
 .chat-lensbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  padding: 9px 12px 0;
+  padding: 0 0 8px;
 }
 .chat-lens-chip {
   display: inline-flex;
@@ -3072,30 +3091,80 @@ body.resizing-col {
 .chat-lens-x:hover {
   color: var(--terracotta);
 }
-.chat-lens-add {
+.composer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+.lens-attach {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  border: 1px dashed var(--driftwood);
-  background: none;
+  gap: 5px;
+  border: none;
   border-radius: 999px;
-  padding: 3px 10px;
+  padding: 6px 14px 6px 11px;
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: var(--fw-semibold);
-  color: var(--reef-deep);
   cursor: pointer;
+  background: var(--seafoam);
+  color: #0d2137;
 }
-.chat-lens-add:hover {
-  border-color: var(--reef-green);
+.lens-attach:hover:not(:disabled) {
+  filter: brightness(1.06);
 }
-.chat-send.dive {
+.lens-attach:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.composer-bar .chat-send {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--reef-green);
+  color: #fff;
+}
+.composer-bar .chat-send.dive {
   background: var(--terracotta);
+}
+.composer-bar .chat-send:hover:not(:disabled) {
+  background: var(--reef-green);
+  filter: brightness(1.08);
+}
+.composer-bar .chat-send.dive:hover:not(:disabled) {
+  background: var(--terracotta);
+}
+.composer-bar .chat-send:disabled {
+  background: var(--driftwood);
+  color: rgba(255, 255, 255, 0.75);
+  cursor: not-allowed;
+}
+.send-wait {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 /* composer on the dark Dive rail */
 .diver .chat-composer {
-  border-top-color: rgba(168, 213, 203, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(168, 213, 203, 0.24);
+}
+.diver .chat-composer:focus-within {
+  border-color: var(--seafoam);
+  box-shadow: 0 0 0 3px rgba(168, 213, 203, 0.16);
+}
+.diver .chat-composer .chat-input {
+  background: none;
+  border: none;
+  color: var(--sand-light);
 }
 .diver .chat-lens-chip {
   background: rgba(255, 255, 255, 0.1);
@@ -3104,10 +3173,6 @@ body.resizing-col {
 }
 .diver .chat-lens-x {
   color: rgba(245, 239, 230, 0.65);
-}
-.diver .chat-lens-add {
-  color: var(--seafoam);
-  border-color: rgba(168, 213, 203, 0.32);
 }
 .diver .chat-msg-ic {
   color: rgba(245, 239, 230, 0.55);

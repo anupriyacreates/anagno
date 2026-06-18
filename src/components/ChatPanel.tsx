@@ -63,6 +63,35 @@ const PinI = ({ on }: { on?: boolean }) => (
     <path d="M9 3h6l-1 6 3 3v2h-5v6l-1 1-1-1v-6H4v-2l3-3z" />
   </svg>
 );
+const ArrowUpI = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M12 19V5M6 11l6-6 6 6" />
+  </svg>
+);
+const PlusI = () => (
+  <svg
+    width="15"
+    height="15"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.4"
+    strokeLinecap="round"
+    aria-hidden="true"
+  >
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
 
 export default function ChatPanel({
   context,
@@ -331,62 +360,69 @@ export default function ChatPanel({
         </div>
       )}
 
-      <div className="chat-composer">
-        <div className="chat-lensbar">
-          {lenses.map((f) => (
-            <span
-              className="chat-lens-chip"
-              key={f.id}
-              style={{ "--accent": f.color } as React.CSSProperties}
-            >
-              <span className="chat-lens-dot" />
-              {f.name}
-              <button
-                className="chat-lens-x"
-                onClick={() => onRemoveLens(f)}
-                aria-label={`Detach ${f.name}`}
-                title={`Detach ${f.name}`}
+      <div className={`chat-composer ${disabled ? "is-disabled" : ""}`}>
+        {lenses.length > 0 && (
+          <div className="chat-lensbar">
+            {lenses.map((f) => (
+              <span
+                className="chat-lens-chip"
+                key={f.id}
+                style={{ "--accent": f.color } as React.CSSProperties}
               >
-                ×
-              </button>
-            </span>
-          ))}
-          <button
-            className="chat-lens-add"
-            onClick={onAddLens}
-            title="Attach a lens"
-          >
-            ＋ Lens
-          </button>
-        </div>
+                <span className="chat-lens-dot" />
+                {f.name}
+                <button
+                  className="chat-lens-x"
+                  onClick={() => onRemoveLens(f)}
+                  aria-label={`Detach ${f.name}`}
+                  title={`Detach ${f.name}`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
 
-        <div className="chat-input-row">
-          <textarea
-            className="chat-input"
-            placeholder={
-              disabled
-                ? "Set a research context first…"
-                : lenses.length > 0
-                  ? "Ask through the attached lens…"
-                  : "Ask a follow-up…"
+        <textarea
+          className="chat-input"
+          placeholder={
+            disabled
+              ? "Set a research context first…"
+              : lenses.length > 0
+                ? "Ask through the attached lens…"
+                : "Ask a follow-up…"
+          }
+          value={input}
+          disabled={disabled || streaming}
+          rows={2}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              send();
             }
-            value={input}
-            disabled={disabled || streaming}
-            rows={2}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                send();
-              }
-            }}
-          />
+          }}
+        />
+
+        <div className="composer-bar">
+          <button
+            className="lens-attach"
+            onClick={onAddLens}
+            disabled={disabled}
+            title="Attach a lens to scope your query"
+          >
+            <PlusI />
+            Lens
+          </button>
           <button
             className={`chat-send ${lenses.length > 0 ? "dive" : ""}`}
             disabled={disabled || streaming || !input.trim()}
             onClick={send}
+            aria-label={lenses.length > 0 ? "Dive with attached lenses" : "Send"}
+            title={lenses.length > 0 ? "Dive" : "Send"}
           >
-            {streaming ? "…" : lenses.length > 0 ? "Dive" : "Send"}
+            {streaming ? <span className="send-wait">···</span> : <ArrowUpI />}
           </button>
         </div>
       </div>
