@@ -1,0 +1,16 @@
+# Deploy Anagno as a single Node web service on Render.
+# 1. Push this repo to GitHub.
+# 2. On render.com → New → Blueprint → pick this repo (it reads render.yaml).
+# 3. Set the ANTHROPIC_API_KEY env var (a fresh key) in the dashboard — it's a secret.
+services:
+  - type: web
+    name: anagno
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false # set in the Render dashboard (secret); never commit it
+      - key: NODE_ENV
+        value: production
