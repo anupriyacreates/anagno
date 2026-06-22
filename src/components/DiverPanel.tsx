@@ -96,6 +96,7 @@ export default function DiverPanel({
   const [threads, setThreads] = useState<Thread[]>(() => loadThreads(storageKey));
   const [activeId, setActiveId] = useState<string>(() => threads[0].id);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [libOpen, setLibOpen] = useState(false);
   const [custom, setCustom] = useState("");
@@ -178,8 +179,61 @@ export default function DiverPanel({
     setCustom("");
   }
 
+  const wide = width >= 520;
+  const sidebar = wide && sidebarOpen;
+
+  const threadRow = (t: Thread) => (
+    <div key={t.id} className={`fchat-thread ${t.id === activeId ? "on" : ""}`}>
+      <button
+        className="fchat-thread-pick"
+        onClick={() => {
+          setActiveId(t.id);
+          setHistoryOpen(false);
+        }}
+      >
+        {t.pinned && <span className="fchat-pindot" />}
+        {t.title}
+      </button>
+      <button
+        className={`fchat-thread-ic ${t.starred ? "on" : ""}`}
+        onClick={() => toggleStar(t.id)}
+        title={t.starred ? "Unstar" : "Star"}
+        aria-label={t.starred ? "Unstar chat" : "Star chat"}
+        aria-pressed={t.starred}
+      >
+        <I
+          d="M12 17.3l-6.2 3.7 1.6-7L2 9.2l7.1-.6L12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7z"
+          fill={t.starred ? "currentColor" : "none"}
+        />
+      </button>
+      <button
+        className={`fchat-thread-ic ${t.pinned ? "on" : ""}`}
+        onClick={() => togglePin(t.id)}
+        title={t.pinned ? "Unpin" : "Pin"}
+        aria-label={t.pinned ? "Unpin chat" : "Pin chat"}
+        aria-pressed={t.pinned}
+      >
+        <I
+          d="M9 3h6l-1 6 3 3v2h-5v6l-1 1-1-1v-6H4v-2l3-3z"
+          fill={t.pinned ? "currentColor" : "none"}
+        />
+      </button>
+      <button
+        className="fchat-thread-ic fchat-thread-del"
+        onClick={() => deleteThread(t.id)}
+        title="Delete chat"
+        aria-label="Delete chat"
+      >
+        <I d="M4 7h16M7 7l1 12a2 2 0 002 2h4a2 2 0 002-2l1-12M9 7V4h6v3" />
+      </button>
+    </div>
+  );
+
   return (
-    <aside className="diver" style={{ flex: `0 0 ${width}px`, width }}>
+    <aside
+      className={`diver ${sidebar ? "is-wide" : ""}`}
+      style={{ flex: `0 0 ${width}px`, width }}
+    >
       <div className="diver-wave" aria-hidden />
 
       <div className="pane-head">
@@ -194,11 +248,13 @@ export default function DiverPanel({
             <I d="M12 5v14M5 12h14" />
           </button>
           <button
-            className={`fchat-act ${historyOpen ? "on" : ""}`}
-            onClick={() => setHistoryOpen((o) => !o)}
-            title="Chat history"
-            aria-label="Chat history"
-            aria-expanded={historyOpen}
+            className={`fchat-act ${(wide ? sidebarOpen : historyOpen) ? "on" : ""}`}
+            onClick={() =>
+              wide ? setSidebarOpen((o) => !o) : setHistoryOpen((o) => !o)
+            }
+            title={wide ? "Toggle chat list" : "Chat history"}
+            aria-label={wide ? "Toggle chat list" : "Chat history"}
+            aria-expanded={wide ? sidebarOpen : historyOpen}
           >
             <I d="M4 6h16M4 12h16M4 18h10" />
           </button>
@@ -213,73 +269,36 @@ export default function DiverPanel({
         </div>
       </div>
 
-      {historyOpen && (
-        <div className="fchat-history">
-          {ordered.map((t) => (
-            <div
-              key={t.id}
-              className={`fchat-thread ${t.id === activeId ? "on" : ""}`}
-            >
-              <button
-                className="fchat-thread-pick"
-                onClick={() => {
-                  setActiveId(t.id);
-                  setHistoryOpen(false);
-                }}
-              >
-                {t.pinned && <span className="fchat-pindot" />}
-                {t.title}
-              </button>
-              <button
-                className={`fchat-thread-ic ${t.starred ? "on" : ""}`}
-                onClick={() => toggleStar(t.id)}
-                title={t.starred ? "Unstar" : "Star"}
-                aria-label={t.starred ? "Unstar chat" : "Star chat"}
-                aria-pressed={t.starred}
-              >
-                <I
-                  d="M12 17.3l-6.2 3.7 1.6-7L2 9.2l7.1-.6L12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7z"
-                  fill={t.starred ? "currentColor" : "none"}
-                />
-              </button>
-              <button
-                className={`fchat-thread-ic ${t.pinned ? "on" : ""}`}
-                onClick={() => togglePin(t.id)}
-                title={t.pinned ? "Unpin" : "Pin"}
-                aria-label={t.pinned ? "Unpin chat" : "Pin chat"}
-                aria-pressed={t.pinned}
-              >
-                <I
-                  d="M9 3h6l-1 6 3 3v2h-5v6l-1 1-1-1v-6H4v-2l3-3z"
-                  fill={t.pinned ? "currentColor" : "none"}
-                />
-              </button>
-              <button
-                className="fchat-thread-ic fchat-thread-del"
-                onClick={() => deleteThread(t.id)}
-                title="Delete chat"
-                aria-label="Delete chat"
-              >
-                <I d="M4 7h16M7 7l1 12a2 2 0 002 2h4a2 2 0 002-2l1-12M9 7V4h6v3" />
-              </button>
-            </div>
-          ))}
-        </div>
+      {!wide && historyOpen && (
+        <div className="fchat-history">{ordered.map(threadRow)}</div>
       )}
 
-      <ChatPanel
-        key={activeId}
-        context={context}
-        nodes={nodes}
-        disabled={!canChat}
-        onPromote={onPromote}
-        messages={active.messages}
-        setMessages={setMessages}
-        lenses={bucket}
-        onRunQuery={onRunQuery}
-        onAddLens={() => setPickerOpen((o) => !o)}
-        onRemoveLens={onToggleBucket}
-      />
+      <div className="dive-body">
+        {sidebar && (
+          <div className="dive-threads">
+            <button className="dive-threads-new" onClick={newChat}>
+              <I d="M12 5v14M5 12h14" />
+              New chat
+            </button>
+            <div className="dive-threads-list">{ordered.map(threadRow)}</div>
+          </div>
+        )}
+        <div className="dive-conv">
+          <ChatPanel
+            key={activeId}
+            context={context}
+            nodes={nodes}
+            disabled={!canChat}
+            onPromote={onPromote}
+            messages={active.messages}
+            setMessages={setMessages}
+            lenses={bucket}
+            onRunQuery={onRunQuery}
+            onAddLens={() => setPickerOpen((o) => !o)}
+            onRemoveLens={onToggleBucket}
+          />
+        </div>
+      </div>
 
       {pickerOpen && (
         <>

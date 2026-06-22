@@ -3215,6 +3215,124 @@ body.resizing-col {
   color: var(--seafoam);
 }
 
+/* Dive panel body: optional thread sidebar + conversation */
+.dive-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+.dive-conv {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.dive-conv .chat {
+  flex: 1;
+  min-height: 0;
+}
+.dive-threads {
+  flex: 0 0 196px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-right: 1px solid rgba(168, 213, 203, 0.15);
+}
+.dive-threads-new {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid rgba(168, 213, 203, 0.3);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--sand-light);
+  border-radius: 9px;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+.dive-threads-new:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.dive-threads-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+/* thread rows on the dark rail (the dropdown variant stays light) */
+.dive-threads .fchat-thread-pick {
+  color: var(--sand-light);
+}
+.dive-threads .fchat-thread.on {
+  background: rgba(255, 255, 255, 0.08);
+}
+.dive-threads .fchat-thread-ic {
+  color: rgba(245, 239, 230, 0.55);
+}
+.dive-threads .fchat-thread-ic:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--sand-light);
+}
+.dive-threads .fchat-thread-ic.on {
+  color: var(--seafoam);
+}
+
+/* wide mode: center the conversation to a comfortable reading column */
+.diver.is-wide .chat {
+  width: 100%;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* scroll-to-latest button */
+.chat-scrollwrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.chat-scrollwrap .chat-log {
+  flex: 1;
+}
+.chat-jump {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  color: var(--text-dark);
+  border: 1px solid var(--driftwood);
+  box-shadow: var(--card-shadow);
+  cursor: pointer;
+  z-index: 5;
+  animation: float-in 0.16s ease;
+}
+.diver .chat-jump {
+  background: #1f4250;
+  color: var(--sand-light);
+  border-color: rgba(168, 213, 203, 0.32);
+}
+.chat-jump:hover {
+  filter: brightness(1.08);
+}
+
 /* lens picker popover (light) anchored above the composer */
 .lenspicker-scrim {
   position: absolute;

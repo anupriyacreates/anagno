@@ -122,7 +122,7 @@ export default function Workspace({
   const [queue, setQueue] = useState<PendingFinding[]>([]);
   const [diving, setDiving] = useState(false);
   const [surfaceOpen, setSurfaceOpen] = useState(true);
-  const [leftWidth, setLeftWidth] = useState(320);
+  const [leftWidth, setLeftWidth] = useState(560);
   const [rightWidth, setRightWidth] = useState(320);
   const [scanning, setScanning] = useState(false);
   const [rippleKey, setRippleKey] = useState(0);
@@ -144,7 +144,7 @@ export default function Workspace({
 
   // ---------- resizable side panes (panes may not overlap the canvas) ----------
   const PANE_MIN = 248;
-  const PANE_MAX = 560;
+  const PANE_MAX = 900;
   const CANVAS_MIN = 340;
   const COLLAPSED_W = 46;
   function startResize(side: "left" | "right") {
