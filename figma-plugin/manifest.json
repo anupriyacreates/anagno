@@ -1,0 +1,7 @@
+{
+  "name": "Anagno Design Kit",
+  "id": "anagno-design-kit",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"]
+}
