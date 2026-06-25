@@ -24,6 +24,7 @@ import DiverPanel from "./DiverPanel";
 import AISurface from "./AISurface";
 import NodeContextMenu from "./NodeContextMenu";
 import ThemeToggle from "./ThemeToggle";
+import ExportDialog from "./ExportDialog";
 import PanelIcon from "./PanelIcon";
 import type { DiverNodeData } from "./DiverNode";
 import type { ElementData } from "./CanvasElements";
@@ -113,6 +114,7 @@ export default function Workspace({
   const [title, setTitle] = useState(projectName);
   const [editingTitle, setEditingTitle] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [leftOpen, setLeftOpen] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
   const [customFrameworks, setCustomFrameworks] = useState<FrameworkDef[]>([]);
@@ -480,7 +482,9 @@ export default function Workspace({
         data: { kind: "sticky", text: "", color: "#f3e2a9", locked: false } as ElementData,
       };
     } else {
-      const shape = kind === "shape-ellipse" ? "ellipse" : "rect";
+      const shape = kind.startsWith("shape-")
+        ? (kind.slice("shape-".length) as ElementData["shape"])
+        : "rect";
       node = {
         id,
         type: "shape",
@@ -694,6 +698,13 @@ export default function Workspace({
         >
           Description
         </button>
+        <button
+          className="top-desc-btn"
+          onClick={() => setExportOpen(true)}
+          title="Export / share the canvas"
+        >
+          Export
+        </button>
         <ThemeToggle theme={theme} onToggle={onToggleTheme} />
       </header>
 
@@ -852,6 +863,14 @@ export default function Workspace({
             </button>
           </div>
         </div>
+      )}
+
+      {exportOpen && (
+        <ExportDialog
+          nodes={nodes}
+          title={title}
+          onClose={() => setExportOpen(false)}
+        />
       )}
     </div>
   );

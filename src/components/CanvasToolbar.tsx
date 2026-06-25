@@ -1,5 +1,13 @@
+import { useEffect, useRef, useState } from "react";
+
 export type Tool = "select" | "hand";
-export type AddKind = "text" | "sticky" | "shape-rect" | "shape-ellipse";
+export type AddKind =
+  | "text"
+  | "sticky"
+  | "shape-rect"
+  | "shape-ellipse"
+  | "shape-triangle"
+  | "shape-diamond";
 
 interface Props {
   tool: Tool;
@@ -11,6 +19,13 @@ interface Props {
   canUndo: boolean;
   canRedo: boolean;
 }
+
+const SHAPES: { kind: AddKind; label: string; path: React.ReactNode }[] = [
+  { kind: "shape-rect", label: "Rectangle", path: <rect x="4" y="6" width="16" height="12" rx="2" /> },
+  { kind: "shape-ellipse", label: "Ellipse", path: <circle cx="12" cy="12" r="8" /> },
+  { kind: "shape-triangle", label: "Triangle", path: <path d="M12 4 20 19 4 19Z" /> },
+  { kind: "shape-diamond", label: "Diamond", path: <path d="M12 3 21 12 12 21 3 12Z" /> },
+];
 
 function I({ children }: { children: React.ReactNode }) {
   return (
@@ -40,6 +55,25 @@ export default function CanvasToolbar({
   canUndo,
   canRedo,
 }: Props) {
+  const [shapeOpen, setShapeOpen] = useState(false);
+  const shapeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!shapeOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (!shapeRef.current?.contains(e.target as Node)) setShapeOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShapeOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [shapeOpen]);
+
   return (
     <div className="canvas-toolbar">
       <button
@@ -89,16 +123,39 @@ export default function CanvasToolbar({
           <path d="M14 19v-5h5" />
         </I>
       </button>
-      <button
-        className="tool"
-        onClick={() => onAdd("shape-rect")}
-        title="Shape"
-        aria-label="Add shape"
-      >
-        <I>
-          <rect x="4" y="6" width="16" height="12" rx="2" />
-        </I>
-      </button>
+      <div className="tool-pop" ref={shapeRef}>
+        <button
+          className={`tool ${shapeOpen ? "on" : ""}`}
+          onClick={() => setShapeOpen((o) => !o)}
+          title="Shapes"
+          aria-label="Add shape"
+          aria-haspopup="menu"
+          aria-expanded={shapeOpen}
+        >
+          <I>
+            <rect x="4" y="6" width="16" height="12" rx="2" />
+          </I>
+        </button>
+        {shapeOpen && (
+          <div className="tool-flyout" role="menu">
+            {SHAPES.map((s) => (
+              <button
+                key={s.kind}
+                role="menuitem"
+                className="tool"
+                title={s.label}
+                aria-label={`Add ${s.label.toLowerCase()}`}
+                onClick={() => {
+                  onAdd(s.kind);
+                  setShapeOpen(false);
+                }}
+              >
+                <I>{s.path}</I>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <button
         className="tool"
         onClick={onAddLink}
