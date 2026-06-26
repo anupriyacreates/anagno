@@ -129,13 +129,17 @@ app.post("/api/dive", async (req, res) => {
 // Cross-cutting pattern scan across the whole canvas.
 app.post("/api/scan", async (req, res) => {
   try {
-    const { context, nodes } = req.body ?? {};
+    const { context, nodes, focus } = req.body ?? {};
     if (!Array.isArray(nodes) || nodes.length === 0) {
       return res
         .status(400)
         .json({ error: "nodes[] is required to scan for patterns." });
     }
-    const user = buildScanUser(String(context ?? ""), nodes);
+    const user = buildScanUser(
+      String(context ?? ""),
+      nodes,
+      focus ? String(focus) : undefined,
+    );
     const result = await generate(SCAN_SYSTEM, user, SCAN_SCHEMA);
     res.json(result);
   } catch (err) {

@@ -47,8 +47,9 @@ export function diveFramework(
 export function scanPatterns(
   context: string,
   nodes: ExistingNode[],
+  focus?: string,
 ): Promise<ScanResponse> {
-  return postJSON<ScanResponse>("/api/scan", { context, nodes });
+  return postJSON<ScanResponse>("/api/scan", { context, nodes, focus });
 }
 
 /** Stream a chat reply; `onToken` is called with each text chunk as it arrives. */

@@ -116,6 +116,7 @@ export default function Workspace({
   const [contextOpen, setContextOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [chatSeed, setChatSeed] = useState("");
+  const [scanFocus, setScanFocus] = useState("");
   const [leftOpen, setLeftOpen] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
   const [customFrameworks, setCustomFrameworks] = useState<FrameworkDef[]>([]);
@@ -407,7 +408,7 @@ export default function Workspace({
     setError(null);
     setSurfaceOpen(true);
     try {
-      const res = await scanPatterns(context, nodePayload);
+      const res = await scanPatterns(context, nodePayload, scanFocus.trim() || undefined);
       if (!res.insights.length) {
         setError("Nothing new in the reef this pass — the map looks coherent.");
         return;
@@ -802,6 +803,8 @@ export default function Workspace({
             diving={diving}
             scanning={scanning}
             canScan={nodePayload.length > 0}
+            scanFocus={scanFocus}
+            onScanFocus={setScanFocus}
             onKeep={keepFinding}
             onToss={tossFinding}
             onDiscuss={discussFinding}

@@ -1098,6 +1098,26 @@ body.resizing-col {
   padding: 14px 16px 18px;
   border-top: 1px solid var(--sand-mid);
 }
+.scan-focus {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--driftwood);
+  border-radius: 10px;
+  padding: 9px 11px;
+  margin-bottom: 8px;
+  font-family: inherit;
+  font-size: var(--text-sm);
+  color: var(--text-dark);
+  background: var(--paper);
+}
+.scan-focus::placeholder {
+  color: var(--text-mid);
+}
+.scan-focus:focus {
+  outline: none;
+  border-color: var(--ocean-blue);
+  box-shadow: 0 0 0 3px rgba(123, 191, 181, 0.18);
+}
 .scan-btn {
   width: 100%;
   background: var(--reef-green);

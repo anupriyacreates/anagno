@@ -80,6 +80,10 @@ Flagging matters here — it's how the canvas highlights what's emerging:
   tension explicitly and set flag "contradiction". Name what disagrees.
 - Use flag "none" only for supporting connective tissue.
 
+If the researcher gives a FOCUS / HYPOTHESIS, treat it as their own knowledge of the
+system — let it steer what you look for (test it, confirm or challenge it, follow the
+thread they point at), while still grounding everything in the actual map.
+
 Write a short "intro" (1 sentence, Diver's voice) framing what you noticed — and if
 you flagged any emerging insights or contradictions, say so.`;
 
@@ -125,18 +129,28 @@ ${task}`;
 export function buildScanUser(
   context: string,
   nodes: ExistingNode[],
+  focus?: string,
 ): string {
   const map = nodes
     .map((n) => `- "${n.title}" (${n.category})`)
     .join("\n");
 
+  const focusBlock = focus?.trim()
+    ? `\nFOCUS / HYPOTHESIS (the researcher's own knowledge — let it steer the scan)
+${focus.trim()}\n`
+    : "";
+
+  const task = focus?.trim()
+    ? `Scan across this whole map, following the researcher's focus above, and surface 2-3 non-obvious cross-cutting insights.`
+    : `Scan across this whole map and surface 2-3 non-obvious cross-cutting insights.`;
+
   return `RESEARCH CONTEXT
 ${context.trim()}
-
+${focusBlock}
 CURRENT CANVAS MAP (${nodes.length} nodes)
 ${map}
 
-Scan across this whole map and surface 2-3 non-obvious cross-cutting insights.`;
+${task}`;
 }
 
 // JSON Schema for structured outputs (output_config.format).

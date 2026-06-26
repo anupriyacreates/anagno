@@ -9,6 +9,8 @@ interface Props {
   diving: boolean;
   scanning: boolean;
   canScan: boolean;
+  scanFocus: string;
+  onScanFocus: (v: string) => void;
   onKeep: (id: string, finding: RawFinding) => void;
   onToss: (id: string) => void;
   onDiscuss: (p: PendingFinding) => void;
@@ -132,6 +134,8 @@ export default function AISurface({
   diving,
   scanning,
   canScan,
+  scanFocus,
+  onScanFocus,
   onKeep,
   onToss,
   onDiscuss,
@@ -208,6 +212,16 @@ export default function AISurface({
       </div>
 
       <div className="surface-foot">
+        <input
+          className="scan-focus"
+          value={scanFocus}
+          onChange={(e) => onScanFocus(e.target.value)}
+          placeholder="Optional: a hunch to steer the scan…"
+          disabled={scanning}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && canScan && !scanning) onScan();
+          }}
+        />
         <button
           className="scan-btn"
           onClick={onScan}
