@@ -18,6 +18,7 @@ import DiverNode from "./DiverNode";
 import { StickyNode, TextNode, ShapeNode, LinkNode } from "./CanvasElements";
 import FloatingEdge from "./FloatingEdge";
 import { NodeActionsContext, type NodeActions } from "./nodeActions";
+import { EdgeActionsContext, type EdgeActions } from "./edgeActions";
 import CanvasToolbar, { type Tool, type AddKind } from "./CanvasToolbar";
 
 const nodeTypes = {
@@ -37,6 +38,7 @@ interface Props {
   onConnect: OnConnect;
   onReconnect: OnReconnect<Edge>;
   actions: NodeActions;
+  edgeActions: EdgeActions;
   empty: boolean;
   rippleKey: number;
   tool: Tool;
@@ -61,6 +63,7 @@ export default function Board({
   onConnect,
   onReconnect,
   actions,
+  edgeActions,
   empty,
   rippleKey,
   tool,
@@ -80,6 +83,7 @@ export default function Board({
 
   return (
     <div className={`shore tool-${tool}`}>
+      <EdgeActionsContext.Provider value={edgeActions}>
       <NodeActionsContext.Provider value={ctx}>
         <ReactFlow
           nodes={nodes}
@@ -117,6 +121,7 @@ export default function Board({
           <Controls showInteractive={false} />
         </ReactFlow>
       </NodeActionsContext.Provider>
+      </EdgeActionsContext.Provider>
 
       {rippleKey > 0 && <div key={rippleKey} className="shore-ripple" />}
 

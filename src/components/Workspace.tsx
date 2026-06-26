@@ -123,6 +123,7 @@ export default function Workspace({
   const [bucket, setBucket] = useState<FrameworkDef[]>([]);
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [manualEdges, setManualEdges] = useState<Edge[]>([]);
+  const [edgeLabels, setEdgeLabels] = useState<Record<string, string>>({});
   const [queue, setQueue] = useState<PendingFinding[]>([]);
   const [diving, setDiving] = useState(false);
   const [surfaceOpen, setSurfaceOpen] = useState(true);
@@ -186,8 +187,19 @@ export default function Workspace({
 
   const derivedEdges = useMemo(() => buildEdges(nodes), [nodes]);
   const edges = useMemo(
-    () => [...derivedEdges, ...manualEdges],
-    [derivedEdges, manualEdges],
+    () =>
+      [...derivedEdges, ...manualEdges].map((e) =>
+        edgeLabels[e.id] !== undefined ? { ...e, label: edgeLabels[e.id] } : e,
+      ),
+    [derivedEdges, manualEdges, edgeLabels],
+  );
+
+  const edgeActions = useMemo(
+    () => ({
+      onLabelChange: (id: string, label: string) =>
+        setEdgeLabels((m) => ({ ...m, [id]: label })),
+    }),
+    [],
   );
 
   const onConnect = useCallback((c: Connection) => {
@@ -197,6 +209,7 @@ export default function Workspace({
           ...c,
           id: uid(),
           type: "floating",
+          label: "relates to",
           style: { stroke: REEF, strokeWidth: 1.8 },
           markerEnd: {
             type: MarkerType.ArrowClosed,
@@ -768,6 +781,7 @@ export default function Workspace({
           onConnect={onConnect}
           onReconnect={onReconnect}
           actions={actions}
+          edgeActions={edgeActions}
           empty={nodes.length === 0}
           rippleKey={rippleKey}
           tool={tool}
