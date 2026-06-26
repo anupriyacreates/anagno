@@ -443,7 +443,13 @@ export function LinkNode({ data, selected }: NodeProps) {
                 style={{ backgroundImage: `url("${meta.image}")` }}
               />
             ) : (
-              <span className="link-thumb placeholder">🔗</span>
+              <span className="link-thumb placeholder" aria-hidden>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 15l6-6" />
+                  <path d="M11 7l1-1a4 4 0 015.7 5.7l-2 2" />
+                  <path d="M13 17l-1 1a4 4 0 01-5.7-5.7l2-2" />
+                </svg>
+              </span>
             )}
             <span className="link-textmeta">
               <span className="link-title">{meta?.title || d.url}</span>

@@ -115,6 +115,7 @@ export default function Workspace({
   const [editingTitle, setEditingTitle] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [chatSeed, setChatSeed] = useState("");
   const [leftOpen, setLeftOpen] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
   const [customFrameworks, setCustomFrameworks] = useState<FrameworkDef[]>([]);
@@ -346,18 +347,23 @@ export default function Workspace({
     }
   }
 
-  function keepCurrent(finding: RawFinding) {
-    const current = queue[0];
-    if (!current) return;
+  function keepFinding(id: string, finding: RawFinding) {
+    const p = queue.find((q) => q.id === id);
+    if (!p) return;
     pushHistory();
     setNodes((ns) => [
       ...ns,
-      makeFindingNode(current, finding, placeIn(ns, current.frameworkId), 0),
+      makeFindingNode(p, finding, placeIn(ns, p.frameworkId), 0),
     ]);
-    setQueue((q) => q.slice(1));
+    setQueue((q) => q.filter((x) => x.id !== id));
   }
-  function tossCurrent() {
-    setQueue((q) => q.slice(1));
+  function tossFinding(id: string) {
+    setQueue((q) => q.filter((x) => x.id !== id));
+  }
+  function discussFinding(p: PendingFinding) {
+    const f = p.finding;
+    setChatSeed(`Let's build on this finding — "${f.title}": ${f.content}`);
+    setLeftOpen(true);
   }
   function promote(items: PendingFinding[]) {
     if (!items.length) return;
@@ -437,9 +443,9 @@ export default function Workspace({
         (f) => f.flag === "contradiction",
       ).length;
       const bits: string[] = [];
-      if (big) bits.push(`⚡ ${big} emerging insight${big > 1 ? "s" : ""}`);
+      if (big) bits.push(`${big} emerging insight${big > 1 ? "s" : ""}`);
       if (tension)
-        bits.push(`🔁 ${tension} contradiction${tension > 1 ? "s" : ""}`);
+        bits.push(`${tension} contradiction${tension > 1 ? "s" : ""}`);
       setNotice(
         bits.length
           ? `Surfaced ${res.insights.length} — ${bits.join(" · ")}`
@@ -728,6 +734,8 @@ export default function Workspace({
             onPromote={promote}
             projectKey={projectKey}
             onRunQuery={runQuery}
+            seed={chatSeed}
+            onSeedConsumed={() => setChatSeed("")}
           />
         ) : (
           <aside className="pane-collapsed left">
@@ -790,13 +798,13 @@ export default function Workspace({
         {surfaceOpen ? (
           <AISurface
             width={rightWidth}
-            current={queue[0] ?? null}
-            remaining={queue.length}
+            queue={queue}
             diving={diving}
             scanning={scanning}
             canScan={nodePayload.length > 0}
-            onKeep={keepCurrent}
-            onToss={tossCurrent}
+            onKeep={keepFinding}
+            onToss={tossFinding}
+            onDiscuss={discussFinding}
             onScan={scan}
             onClose={() => setSurfaceOpen(false)}
           />

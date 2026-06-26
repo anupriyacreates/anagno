@@ -1014,6 +1014,61 @@ body.resizing-col {
   color: var(--text-mid);
   font-style: italic;
 }
+.surface-discuss {
+  margin-top: 12px;
+  background: none;
+  border: 1px solid var(--driftwood);
+  border-radius: 9px;
+  padding: 7px 12px;
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--reef-deep);
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.surface-discuss:hover {
+  border-color: var(--reef-green);
+  color: var(--reef-green);
+}
+/* carousel nav over the surfaced queue */
+.surface-nav {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 4px 14px 0;
+}
+.surface-nav-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--driftwood);
+  background: none;
+  border-radius: 8px;
+  color: var(--text-mid);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.surface-nav-btn:hover:not(:disabled) {
+  border-color: var(--reef-green);
+  color: var(--text-dark);
+}
+.surface-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.surface-nav-count {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark);
+}
+.surface-nav-count span {
+  color: var(--text-mid);
+  font-weight: var(--fw-regular);
+}
 .surface-waiting {
   display: flex;
   flex-direction: column;

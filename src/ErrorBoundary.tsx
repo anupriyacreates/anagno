@@ -26,7 +26,7 @@ export default class ErrorBoundary extends Component<
     if (this.state.error) {
       return (
         <div style={{ padding: 40, fontFamily: "system-ui, sans-serif" }}>
-          <h1 style={{ color: "#b91c1c" }}>🤿 Something broke on the surface</h1>
+          <h1 style={{ color: "#b91c1c" }}>Something broke on the surface</h1>
           <p>The app hit a runtime error while rendering:</p>
           <pre
             style={{

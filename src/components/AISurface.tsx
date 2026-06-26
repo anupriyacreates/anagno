@@ -1,31 +1,31 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { PendingFinding, RawFinding } from "../types";
 import PanelIcon from "./PanelIcon";
 import WaveLoader from "./WaveLoader";
 
 interface Props {
   width: number;
-  current: PendingFinding | null;
-  remaining: number;
+  queue: PendingFinding[];
   diving: boolean;
   scanning: boolean;
   canScan: boolean;
-  onKeep: (finding: RawFinding) => void;
-  onToss: () => void;
+  onKeep: (id: string, finding: RawFinding) => void;
+  onToss: (id: string) => void;
+  onDiscuss: (p: PendingFinding) => void;
   onScan: () => void;
   onClose: () => void;
 }
 
 function ConfirmCard({
   pending,
-  remaining,
   onKeep,
   onToss,
+  onDiscuss,
 }: {
   pending: PendingFinding;
-  remaining: number;
   onKeep: (f: RawFinding) => void;
   onToss: () => void;
+  onDiscuss: () => void;
 }) {
   const f = pending.finding;
   const [editing, setEditing] = useState(false);
@@ -105,20 +105,22 @@ function ConfirmCard({
                 onKeep({ ...f, title: title.trim(), content: content.trim() })
               }
             >
-              Keep it 🙌
+              Keep it
             </button>
             <button className="act tweak" onClick={() => setEditing(true)}>
-              Tweak it ✏️
+              Tweak it
             </button>
             <button className="act toss" onClick={onToss}>
-              Toss it 🌊
+              Toss it
             </button>
           </>
         )}
       </div>
 
-      {remaining > 1 && (
-        <div className="surface-remaining">{remaining - 1} more surfacing…</div>
+      {!editing && (
+        <button className="surface-discuss" onClick={onDiscuss}>
+          Bring into chat
+        </button>
       )}
     </div>
   );
@@ -126,16 +128,25 @@ function ConfirmCard({
 
 export default function AISurface({
   width,
-  current,
-  remaining,
+  queue,
   diving,
   scanning,
   canScan,
   onKeep,
   onToss,
+  onDiscuss,
   onScan,
   onClose,
 }: Props) {
+  const [index, setIndex] = useState(0);
+
+  // keep the index valid as the queue grows/shrinks
+  useEffect(() => {
+    if (index > queue.length - 1) setIndex(Math.max(0, queue.length - 1));
+  }, [queue.length, index]);
+
+  const current = queue[index] ?? null;
+
   return (
     <aside className="surface" style={{ flex: `0 0 ${width}px`, width }}>
       <div className="pane-head">
@@ -145,14 +156,40 @@ export default function AISurface({
         </button>
       </div>
 
+      {queue.length > 1 && (
+        <div className="surface-nav">
+          <button
+            className="surface-nav-btn"
+            onClick={() => setIndex((i) => Math.max(0, i - 1))}
+            disabled={index === 0}
+            aria-label="Previous card"
+            title="Previous"
+          >
+            ‹
+          </button>
+          <span className="surface-nav-count">
+            {index + 1} <span>/ {queue.length}</span>
+          </span>
+          <button
+            className="surface-nav-btn"
+            onClick={() => setIndex((i) => Math.min(queue.length - 1, i + 1))}
+            disabled={index === queue.length - 1}
+            aria-label="Next card"
+            title="Next"
+          >
+            ›
+          </button>
+        </div>
+      )}
+
       <div className="surface-body">
         {current ? (
           <ConfirmCard
             key={current.id}
             pending={current}
-            remaining={remaining}
-            onKeep={onKeep}
-            onToss={onToss}
+            onKeep={(finding) => onKeep(current.id, finding)}
+            onToss={() => onToss(current.id)}
+            onDiscuss={() => onDiscuss(current)}
           />
         ) : diving ? (
           <div className="surface-waiting">

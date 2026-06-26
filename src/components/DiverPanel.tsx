@@ -32,6 +32,8 @@ interface Props {
   onPromote: (items: PendingFinding[]) => void;
   projectKey: string;
   onRunQuery: (focus: string) => Promise<string>;
+  seed?: string;
+  onSeedConsumed?: () => void;
 }
 
 function uid() {
@@ -91,6 +93,8 @@ export default function DiverPanel({
   onPromote,
   projectKey,
   onRunQuery,
+  seed,
+  onSeedConsumed,
 }: Props) {
   const storageKey = `anagno:chat:${projectKey}`;
   const [threads, setThreads] = useState<Thread[]>(() => loadThreads(storageKey));
@@ -296,6 +300,8 @@ export default function DiverPanel({
             onRunQuery={onRunQuery}
             onAddLens={() => setPickerOpen((o) => !o)}
             onRemoveLens={onToggleBucket}
+            seed={seed}
+            onSeedConsumed={onSeedConsumed}
           />
         </div>
       </div>

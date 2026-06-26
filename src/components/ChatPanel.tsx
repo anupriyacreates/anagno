@@ -26,6 +26,9 @@ interface Props {
   onRunQuery: (focus: string) => Promise<string>;
   onAddLens: () => void;
   onRemoveLens: (f: FrameworkDef) => void;
+  /** Prefill the composer (e.g. a finding brought over from the Surface pane). */
+  seed?: string;
+  onSeedConsumed?: () => void;
 }
 
 function uid() {
@@ -119,6 +122,8 @@ export default function ChatPanel({
   onRunQuery,
   onAddLens,
   onRemoveLens,
+  seed,
+  onSeedConsumed,
 }: Props) {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -131,7 +136,17 @@ export default function ChatPanel({
   const endRef = useRef<HTMLDivElement>(null);
   const msgRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const logRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [showJump, setShowJump] = useState(false);
+
+  // a finding brought over from the Surface pane prefills the composer
+  useEffect(() => {
+    if (!seed) return;
+    setInput(seed);
+    inputRef.current?.focus();
+    onSeedConsumed?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seed]);
 
   function onLogScroll() {
     const el = logRef.current;
@@ -303,7 +318,6 @@ export default function ChatPanel({
         )}
         {messages.length === 0 && !streaming && (
           <div className="chat-welcome">
-            <div className="chat-welcome-spark">✨</div>
             <h3>Ask Anagno</h3>
           </div>
         )}
@@ -424,6 +438,7 @@ export default function ChatPanel({
         )}
 
         <textarea
+          ref={inputRef}
           className="chat-input"
           placeholder={
             disabled
