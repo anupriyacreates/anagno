@@ -501,6 +501,25 @@ export default function Workspace({
         style: { width: 200, height: 160 },
         data: { kind: "sticky", text: "", color: "#f3e2a9", locked: false } as ElementData,
       };
+    } else if (kind === "finding") {
+      node = {
+        id,
+        type: "diver",
+        position,
+        data: {
+          title: "New insight",
+          category: "Insight",
+          content: "",
+          color: REEF,
+          flag: "none",
+          frameworkId: "__manual__",
+          connectsTo: [],
+          connectionType: "feeds into",
+          rotation: rot(),
+          appearDelay: 0,
+          locked: false,
+        } as DiverNodeData,
+      };
     } else {
       const shape = kind.startsWith("shape-")
         ? (kind.slice("shape-".length) as ElementData["shape"])

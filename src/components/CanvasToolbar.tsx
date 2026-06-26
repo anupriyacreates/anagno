@@ -4,6 +4,7 @@ export type Tool = "select" | "hand";
 export type AddKind =
   | "text"
   | "sticky"
+  | "finding"
   | "shape-rect"
   | "shape-ellipse"
   | "shape-triangle"
@@ -121,6 +122,17 @@ export default function CanvasToolbar({
         <I>
           <path d="M5 4h14v10l-5 5H5z" />
           <path d="M14 19v-5h5" />
+        </I>
+      </button>
+      <button
+        className="tool"
+        onClick={() => onAdd("finding")}
+        title="Insight card"
+        aria-label="Add an insight card"
+      >
+        <I>
+          <rect x="3" y="6" width="18" height="12" rx="3" />
+          <path d="M7 6v12" />
         </I>
       </button>
       <div className="tool-pop" ref={shapeRef}>
