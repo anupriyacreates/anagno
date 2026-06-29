@@ -14,12 +14,16 @@ Three pages:
   and a type specimen.
 - **02 Components** — buttons (CTA + ghost), finding/Diver node cards (incl. scan +
   dark variants), **Actor / Factor systems nodes** (kind badge + actor power/interest/stance
-  chips), **signed (+/−) causal links**, framework chips, panel headers (Caveat), and the
-  chat + lens composer.
-- **03 Screens** — a **Landing** frame (nav, hero, systems-map preview, How-it-works
-  cards) and a **Workspace** frame (top bar with the loud Export action, dark Dive panel +
-  chat, canvas with actor/factor nodes + signed links, Surface with the confirm-card
-  carousel + Scan for Patterns).
+  chips), **signed (+/−) causal links**, framework chips, panel headers (Caveat), the
+  chat + lens composer, **canvas elements** (sticky / text / shapes / link card), and the
+  **Surface confirm card** (keep / tweak / toss + bring-into-chat).
+- **03 Screens** — every screen, laid out left→right:
+  - **Landing** — full page: nav, hero + systems-map preview, logo strip, how-it-works,
+    framework-library moment, testimonial, use cases, changelog, pricing, CTA band, footer.
+  - **Login** — the sign-in modal card on the dark scrim.
+  - **Projects** — nav + "New project" tile + project cards grid.
+  - **Workspace** — top bar (loud Export), dark Dive panel + chat + lens composer, canvas
+    with actor/factor nodes + signed links, Surface with the confirm-card carousel + Scan.
 
 ## Run it
 
