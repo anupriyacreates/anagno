@@ -290,42 +290,50 @@ export default function AISurface({
       </div>
 
       <div className="surface-foot">
-        <input
-          className="scan-focus"
-          value={scanFocus}
-          onChange={(e) => onScanFocus(e.target.value)}
-          placeholder="Optional: a hunch to steer the scan…"
-          disabled={scanning}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && canScan && !scanning) onScan();
-          }}
-        />
-        <button
-          className="scan-btn analyze"
-          onClick={onAnalyze}
-          disabled={!canScan}
-          title={
-            canScan
-              ? "Compute feedback loops & leverage points (no AI)"
-              : "Add some nodes first"
-          }
-        >
-          Analyze system
-        </button>
-        <button
-          className="scan-btn"
-          onClick={onScan}
-          disabled={!canScan || scanning}
-          title={canScan ? "Find patterns across the canvas" : "Add some nodes first"}
-        >
-          {scanning ? (
-            <span className="btn-loading">
-              <WaveLoader /> Scanning the reef
-            </span>
-          ) : (
-            "Scan for Patterns"
-          )}
-        </button>
+        <div className="foot-action">
+          <button
+            className="scan-btn analyze"
+            onClick={onAnalyze}
+            disabled={!canScan}
+            title={canScan ? "Compute the structure on-device" : "Add some nodes first"}
+          >
+            Analyze system
+          </button>
+          <span className="foot-hint">
+            Instant, on-device — finds feedback loops &amp; leverage points in your graph.
+            No AI.
+          </span>
+        </div>
+
+        <div className="scan-group">
+          <input
+            className="scan-focus"
+            value={scanFocus}
+            onChange={(e) => onScanFocus(e.target.value)}
+            placeholder="Optional: a hunch to steer the AI scan…"
+            disabled={scanning}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && canScan && !scanning) onScan();
+            }}
+          />
+          <button
+            className="scan-btn"
+            onClick={onScan}
+            disabled={!canScan || scanning}
+            title={canScan ? "Ask the AI to read the whole map" : "Add some nodes first"}
+          >
+            {scanning ? (
+              <span className="btn-loading">
+                <WaveLoader /> Scanning the reef
+              </span>
+            ) : (
+              "Scan for Patterns"
+            )}
+          </button>
+          <span className="foot-hint">
+            AI reads the whole map for emerging insights &amp; tensions.
+          </span>
+        </div>
       </div>
     </aside>
   );

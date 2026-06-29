@@ -4234,10 +4234,24 @@ body.resizing-col {
 .scan-btn.analyze {
   background: var(--ocean-blue);
   color: #0d2137;
-  margin-bottom: 8px;
 }
 .scan-btn.analyze:hover:not(:disabled) {
   filter: brightness(1.05);
+}
+.foot-action {
+  margin-bottom: 14px;
+}
+.foot-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-mid);
+  text-align: center;
+}
+.scan-group {
+  border-top: 1px dashed var(--driftwood);
+  padding-top: 14px;
 }
 .fchat {
   width: min(460px, 70vw);
