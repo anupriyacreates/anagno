@@ -14,13 +14,12 @@ Three pages:
   and a type specimen.
 - **02 Components** — buttons (CTA + ghost), finding/Diver node cards (incl. scan +
   dark variants), **Actor / Factor systems nodes** (kind badge + actor power/interest/stance
-  chips), **signed (+/−) causal links**, the **System-analysis panel** (reinforcing/
-  balancing loops + leverage points), framework chips, panel headers (Caveat), and the
+  chips), **signed (+/−) causal links**, framework chips, panel headers (Caveat), and the
   chat + lens composer.
 - **03 Screens** — a **Landing** frame (nav, hero, systems-map preview, How-it-works
-  cards) and a **Workspace** frame (dark Dive panel + chat, canvas with actor/factor nodes
-  + signed links, Surface with the System-analysis panel, confirm-card carousel, and the
-  Analyze / Scan actions).
+  cards) and a **Workspace** frame (top bar with the loud Export action, dark Dive panel +
+  chat, canvas with actor/factor nodes + signed links, Surface with the confirm-card
+  carousel + Scan for Patterns).
 
 ## Run it
 

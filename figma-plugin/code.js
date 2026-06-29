@@ -305,32 +305,6 @@ function signedLink(sign, label) {
   return row;
 }
 
-// the deterministic System analysis panel (loops + leverage)
-function systemAnalysis(w) {
-  const p = F({ dir: "VERTICAL", gap: 9, pad: 12, radius: 14, fill: "#ffffff", stroke: "#d6cfc7", effects: cardShadow(false), name: "system-analysis" });
-  p.primaryAxisSizingMode = "FIXED";
-  p.resize(w || 320, 1);
-  p.counterAxisSizingMode = "AUTO";
-  const innerW = (w || 320) - 24 - 18;
-  add(p, T("SYSTEM ANALYSIS", { weight: 700, size: 11, tracking: 8, color: "#5c8a62" }));
-  add(p, T("Feedback loops", { weight: 600, size: 12.5, color: "#6b5c4e" }));
-  for (const [type, label, accent] of [
-    ["REINFORCING", "churn → neglect → churn", "#7a9e7e"],
-    ["BALANCING", "price ↑ → demand ↓ → price ↓", "#c47c5a"],
-  ]) {
-    const row = F({ dir: "VERTICAL", gap: 3, pad: [6, 9], radius: 9, fill: "#f5efe6", stroke: accent, strokeW: 0 });
-    row.layoutAlign = "STRETCH";
-    add(row, T(type, { weight: 700, size: 9.5, tracking: 6, color: accent }), T(label, { size: 12, color: "#2d2416", width: innerW }));
-    add(p, row);
-  }
-  add(p, T("Leverage points", { weight: 600, size: 12.5, color: "#6b5c4e" }));
-  const lev = F({ dir: "VERTICAL", gap: 2, pad: [6, 9], radius: 9, fill: "#f5efe6" });
-  lev.layoutAlign = "STRETCH";
-  add(lev, T("Retention ownership", { weight: 600, size: 12.5, color: "#2d2416" }), T("in 2 loops · 3 outgoing", { size: 11, color: "#6b5c4e", width: innerW }));
-  add(p, lev);
-  return p;
-}
-
 // ---------------------------------------------------------------- foundations page
 function buildFoundations(page) {
   const root = F({ dir: "VERTICAL", gap: 44, pad: 56, fill: "#f5efe6", name: "Foundations" });
@@ -427,9 +401,6 @@ function buildComponents(page) {
   const links = F({ dir: "HORIZONTAL", gap: 18, align: "CENTER" });
   add(links, signedLink("+", "amplifies"), signedLink("-", "contradicts"), signedLink("+", "relates to"));
   add(root, group("Signed causal links", links));
-
-  // deterministic system analysis
-  add(root, group("System analysis (loops + leverage)", systemAnalysis(360)));
 
   // framework chips
   const chips = F({ dir: "HORIZONTAL", gap: 12 });
@@ -573,8 +544,10 @@ function workspaceScreen() {
   top.primaryAxisSizingMode = "FIXED";
   const tl = F({ dir: "HORIZONTAL", gap: 14, align: "CENTER" });
   add(tl, T("⌂", { size: 18, color: "#6b5c4e" }), T("Research retention", { weight: 600, size: 15, color: "#2d2416" }));
-  const tr = F({ dir: "HORIZONTAL", gap: 12, align: "CENTER" });
-  add(tr, btnGhost("Description"), T("☾", { size: 16, color: "#6b5c4e" }));
+  const tr = F({ dir: "HORIZONTAL", gap: 10, align: "CENTER" });
+  const exp = F({ dir: "HORIZONTAL", pad: [6, 12], radius: 8, fill: "#c47c5a", align: "CENTER" });
+  add(exp, T("Export", { weight: 600, size: 12.5, color: "#ffffff" }));
+  add(tr, btnGhost("Description"), exp, T("☾", { size: 16, color: "#6b5c4e" }));
   add(top, tl, tr);
   screen.appendChild(top); top.x = 0; top.y = 0;
 
@@ -647,8 +620,6 @@ function workspaceScreen() {
   const stop = F({ dir: "VERTICAL", gap: 14 });
   stop.layoutAlign = "STRETCH";
   add(stop, T("Surface", { family: DISPLAY, weight: 700, size: 26, color: "#2d2416" }));
-  // deterministic system-analysis panel
-  add(stop, systemAnalysis(328));
   // confirm card (carousel 1 / 4)
   add(stop, T("1 / 4", { family: MONO, weight: 600, size: 12.5, color: "#6b5c4e" }));
   const confirm = findingNode({ cat: "Value Proposition", title: "Trust they'll get paid", body: "Carpenters value reliable, on-time payment as much as the work itself — late pay erodes the relationship fast.", accent: "#c47c5a", w: 320 });
@@ -657,16 +628,10 @@ function workspaceScreen() {
   add(actions, btnCTA("Keep it"), btnGhost("Tweak"), btnGhost("Toss"));
   add(stop, actions);
   add(surf, stop);
-  const foot = F({ dir: "VERTICAL", gap: 8 });
-  foot.layoutAlign = "STRETCH";
-  const analyze = F({ dir: "HORIZONTAL", pad: [12, 24], radius: 10, fill: "#7bbfb5", align: "CENTER", justify: "CENTER" });
-  analyze.layoutAlign = "STRETCH";
-  add(analyze, T("Analyze system", { weight: 600, size: 15, color: "#0d2137" }));
-  const scan = F({ dir: "HORIZONTAL", pad: [12, 24], radius: 10, fill: "#5c8a62", align: "CENTER", justify: "CENTER" });
+  const scan = F({ dir: "HORIZONTAL", pad: [13, 24], radius: 10, fill: "#5c8a62", align: "CENTER", justify: "CENTER" });
   scan.layoutAlign = "STRETCH";
   add(scan, T("Scan for Patterns", { weight: 600, size: 15, color: "#ffffff" }));
-  add(foot, analyze, scan);
-  add(surf, foot);
+  add(surf, scan);
   screen.appendChild(surf); surf.x = W - 360; surf.y = 48;
 
   return screen;
