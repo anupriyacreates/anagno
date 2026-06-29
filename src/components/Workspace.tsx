@@ -20,7 +20,6 @@ import type {
 } from "../types";
 import { BUILT_IN_FRAMEWORKS, makeCustomFramework } from "../data/frameworks";
 import { diveFramework, scanPatterns } from "../api";
-import { analyzeSystem, type SystemAnalysis } from "../lib/systems";
 import Board from "./Board";
 import DiverPanel from "./DiverPanel";
 import AISurface from "./AISurface";
@@ -127,7 +126,6 @@ export default function Workspace({
   const [manualEdges, setManualEdges] = useState<Edge[]>([]);
   const [edgeLabels, setEdgeLabels] = useState<Record<string, string>>({});
   const [edgeSigns, setEdgeSigns] = useState<Record<string, Sign>>({});
-  const [analysis, setAnalysis] = useState<SystemAnalysis | null>(null);
   const [queue, setQueue] = useState<PendingFinding[]>([]);
   const [diving, setDiving] = useState(false);
   const [surfaceOpen, setSurfaceOpen] = useState(true);
@@ -397,41 +395,6 @@ export default function Workspace({
     setLeftOpen(true);
   }
 
-  // ---------- systems analysis (deterministic) ----------
-  function analyzeNow() {
-    setAnalysis(analyzeSystem(nodesRef.current, edges));
-    setSurfaceOpen(true);
-  }
-  function addInsightNode(title: string, content: string) {
-    pushHistory();
-    setNodes((ns) => [
-      ...ns,
-      {
-        id: uid(),
-        type: "diver",
-        position: placeIn(ns, "__patterns__"),
-        data: {
-          title,
-          category: "From analysis",
-          content,
-          color: "#5c8a62",
-          flag: "none",
-          frameworkId: "__patterns__",
-          connectsTo: [],
-          connectionType: "feeds into",
-          isInsight: true,
-          rotation: rot(),
-          appearDelay: 0,
-          locked: false,
-          kind: "finding",
-        } as DiverNodeData,
-      },
-    ]);
-  }
-  function highlightNodes(ids: string[]) {
-    const set = new Set(ids);
-    setNodes((ns) => ns.map((n) => ({ ...n, selected: set.has(n.id) })));
-  }
   function promote(items: PendingFinding[]) {
     if (!items.length) return;
     setQueue((q) => [...q, ...items]);
@@ -905,10 +868,6 @@ export default function Workspace({
             onToss={tossFinding}
             onDiscuss={discussFinding}
             onScan={scan}
-            analysis={analysis}
-            onAnalyze={analyzeNow}
-            onKeepInsight={addInsightNode}
-            onHighlight={highlightNodes}
             onClose={() => setSurfaceOpen(false)}
           />
         ) : (
