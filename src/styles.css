@@ -2085,6 +2085,12 @@ body.resizing-col {
   font-size: var(--text-sm);
   color: #9c4a28;
 }
+.export-note {
+  margin: 6px 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-mid);
+  line-height: var(--lead-normal);
+}
 .export-actions {
   display: flex;
   justify-content: flex-end;

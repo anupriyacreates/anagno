@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Node } from "@xyflow/react";
 import { renderCanvasPng, downloadDataUrl, pngToPdf } from "../lib/exportCanvas";
+import { exportDocx, exportPptx, type DocFinding } from "../lib/exportDoc";
 
 interface Props {
   nodes: Node[];
@@ -8,8 +9,22 @@ interface Props {
   onClose: () => void;
 }
 
-type Format = "png" | "pdf";
+type Format = "png" | "pdf" | "docx" | "pptx";
 type Scope = "all" | "selection";
+
+function findingsFrom(nodes: Node[]): DocFinding[] {
+  return nodes
+    .filter((n) => n.type === "diver")
+    .map((n) => {
+      const d = n.data as { title?: string; category?: string; content?: string };
+      return {
+        title: String(d.title ?? "").trim(),
+        category: String(d.category ?? "").trim(),
+        content: String(d.content ?? "").trim(),
+      };
+    })
+    .filter((f) => f.title);
+}
 
 function slug(s: string) {
   return (s || "canvas").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "canvas";
@@ -30,19 +45,33 @@ export default function ExportDialog({ nodes, title, onClose }: Props) {
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  const isImage = format === "png" || format === "pdf";
+  const findings = findingsFrom(nodes);
+
   async function run() {
     if (busy) return;
     setBusy(true);
     setError(null);
     try {
-      const canvasBg =
-        getComputedStyle(document.documentElement).getPropertyValue("--sand-light").trim() ||
-        "#f5efe6";
-      const background = format === "png" && transparent ? null : canvasBg;
-      const { url, w, h } = await renderCanvasPng(nodes, { scope, scale, background });
-      const base = `anagno-${slug(title)}-${scope}`;
-      if (format === "png") downloadDataUrl(url, `${base}.png`);
-      else await pngToPdf(url, w, h, `${base}.pdf`);
+      const base = `anagno-${slug(title)}`;
+      if (isImage) {
+        const canvasBg =
+          getComputedStyle(document.documentElement)
+            .getPropertyValue("--sand-light")
+            .trim() || "#f5efe6";
+        const background = format === "png" && transparent ? null : canvasBg;
+        const { url, w, h } = await renderCanvasPng(nodes, { scope, scale, background });
+        if (format === "png") downloadDataUrl(url, `${base}-${scope}.png`);
+        else await pngToPdf(url, w, h, `${base}-${scope}.pdf`);
+      } else {
+        if (!findings.length) {
+          throw new Error(
+            "No findings to export — keep some insights onto the canvas first.",
+          );
+        }
+        if (format === "docx") await exportDocx(title || "Anagno", findings, `${base}.docx`);
+        else await exportPptx(title || "Anagno", findings, `${base}.pptx`);
+      }
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Export failed.");
@@ -89,44 +118,58 @@ export default function ExportDialog({ nodes, title, onClose }: Props) {
             options={[
               { v: "png", label: "PNG" },
               { v: "pdf", label: "PDF" },
+              { v: "docx", label: "Word" },
+              { v: "pptx", label: "Slides" },
             ]}
           />
         </label>
 
-        <label className="export-row">
-          <span>Scope</span>
-          <Seg
-            value={scope}
-            set={setScope}
-            options={[
-              { v: "all", label: "Whole canvas" },
-              { v: "selection", label: "Selection", disabled: !hasSelection },
-            ]}
-          />
-        </label>
+        {isImage ? (
+          <>
+            <label className="export-row">
+              <span>Scope</span>
+              <Seg
+                value={scope}
+                set={setScope}
+                options={[
+                  { v: "all", label: "Whole canvas" },
+                  { v: "selection", label: "Selection", disabled: !hasSelection },
+                ]}
+              />
+            </label>
 
-        <label className="export-row">
-          <span>Quality</span>
-          <Seg
-            value={String(scale)}
-            set={(v) => setScale(Number(v))}
-            options={[
-              { v: "1", label: "1×" },
-              { v: "2", label: "2×" },
-              { v: "3", label: "3×" },
-            ]}
-          />
-        </label>
+            <label className="export-row">
+              <span>Quality</span>
+              <Seg
+                value={String(scale)}
+                set={(v) => setScale(Number(v))}
+                options={[
+                  { v: "1", label: "1×" },
+                  { v: "2", label: "2×" },
+                  { v: "3", label: "3×" },
+                ]}
+              />
+            </label>
 
-        {format === "png" && (
-          <label className="export-check">
-            <input
-              type="checkbox"
-              checked={transparent}
-              onChange={(e) => setTransparent(e.target.checked)}
-            />
-            Transparent background
-          </label>
+            {format === "png" && (
+              <label className="export-check">
+                <input
+                  type="checkbox"
+                  checked={transparent}
+                  onChange={(e) => setTransparent(e.target.checked)}
+                />
+                Transparent background
+              </label>
+            )}
+          </>
+        ) : (
+          <p className="export-note">
+            {findings.length
+              ? `Exports your ${findings.length} finding${findings.length === 1 ? "" : "s"} as ${
+                  format === "docx" ? "a Word document" : "a slide deck (one slide each)"
+                }.`
+              : "No findings on the canvas yet — keep some insights first."}
+          </p>
         )}
 
         {error && <p className="export-error">{error}</p>}
