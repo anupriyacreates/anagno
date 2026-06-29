@@ -4566,6 +4566,17 @@ body.resizing-col {
   color: var(--text-dark);
   border-color: var(--reef-green);
 }
+/* Export reads as the loud primary action — distinct from the neutral Description */
+.top-export-btn {
+  background: var(--terracotta);
+  border-color: var(--terracotta);
+  color: #fff;
+}
+.top-export-btn:hover {
+  color: #fff;
+  border-color: var(--terracotta);
+  filter: brightness(0.94);
+}
 .top-proj {
   display: inline-flex;
   align-items: center;

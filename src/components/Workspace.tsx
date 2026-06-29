@@ -801,7 +801,7 @@ export default function Workspace({
           Description
         </button>
         <button
-          className="top-desc-btn"
+          className="top-desc-btn top-export-btn"
           onClick={() => setExportOpen(true)}
           title="Export / share the canvas"
         >

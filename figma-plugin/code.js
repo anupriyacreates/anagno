@@ -254,6 +254,83 @@ function bubble(text, who) {
   return wrap;
 }
 
+// actor / factor systems-model nodes
+function kindNode(p) {
+  const isActor = p.kind === "actor";
+  const accent = isActor ? "#c47c5a" : "#7bbfb5";
+  const badgeText = isActor ? "ACTOR" : "FACTOR";
+  const badgeColor = isActor ? "#9c4a28" : "#2f6f66";
+  const w = p.w || 248;
+  const innerW = w - 5 - 31;
+  const card = F({ dir: "HORIZONTAL", radius: 16, fill: "#ffffff", effects: cardShadow(false), clip: true, name: p.kind + "-node" });
+  const bar = figma.createRectangle();
+  bar.resize(5, 10);
+  bar.fills = [solid(accent)];
+  bar.layoutAlign = "STRETCH";
+  const content = F({ dir: "VERTICAL", gap: 6, pad: [14, 16, 13, 15] });
+  const catRow = F({ dir: "HORIZONTAL", gap: 6, align: "CENTER" });
+  const badge = F({ dir: "HORIZONTAL", pad: [1, 6], radius: 999, fill: accent, fillOpacity: 0.16, align: "CENTER" });
+  add(badge, T(badgeText, { weight: 700, size: 9, tracking: 8, color: badgeColor }));
+  add(catRow, badge);
+  const title = T(p.title, { weight: 600, size: 15, color: "#2d2416", line: 130, width: innerW });
+  add(content, catRow, title);
+  if (isActor) {
+    const chips = F({ dir: "HORIZONTAL", gap: 5 });
+    for (const [c, bg, fg] of [
+      ["power: high", "#ede4d3", "#6b5c4e"],
+      ["interest: high", "#ede4d3", "#6b5c4e"],
+      ["ally", "rgba", "#4a6b4e"],
+    ]) {
+      const ch = F({ dir: "HORIZONTAL", pad: [2, 8], radius: 999, fill: bg === "rgba" ? "#7a9e7e" : bg, fillOpacity: bg === "rgba" ? 0.2 : 1, align: "CENTER" });
+      add(ch, T(c, { weight: 600, size: 10.5, color: fg }));
+      add(chips, ch);
+    }
+    add(content, chips);
+  }
+  add(card, bar, content);
+  return card;
+}
+
+// signed causal link pill (the +/- on a connection)
+function signedLink(sign, label) {
+  const row = F({ dir: "HORIZONTAL", gap: 4, align: "CENTER" });
+  const s = F({ dir: "HORIZONTAL", radius: 999, fill: sign === "+" ? "#7a9e7e" : "#c47c5a", align: "CENTER", justify: "CENTER" });
+  s.primaryAxisSizingMode = "FIXED";
+  s.counterAxisSizingMode = "FIXED";
+  s.resize(16, 16);
+  add(s, T(sign, { family: MONO, weight: 700, size: 10, color: "#ffffff" }));
+  const pill = F({ dir: "HORIZONTAL", pad: [1, 7], radius: 999, fill: "#ffffff", stroke: "#d6cfc7", align: "CENTER" });
+  add(pill, T(label, { family: MONO, weight: 500, size: 9.5, color: "#5c8a62" }));
+  add(row, s, pill);
+  return row;
+}
+
+// the deterministic System analysis panel (loops + leverage)
+function systemAnalysis(w) {
+  const p = F({ dir: "VERTICAL", gap: 9, pad: 12, radius: 14, fill: "#ffffff", stroke: "#d6cfc7", effects: cardShadow(false), name: "system-analysis" });
+  p.primaryAxisSizingMode = "FIXED";
+  p.resize(w || 320, 1);
+  p.counterAxisSizingMode = "AUTO";
+  const innerW = (w || 320) - 24 - 18;
+  add(p, T("SYSTEM ANALYSIS", { weight: 700, size: 11, tracking: 8, color: "#5c8a62" }));
+  add(p, T("Feedback loops", { weight: 600, size: 12.5, color: "#6b5c4e" }));
+  for (const [type, label, accent] of [
+    ["REINFORCING", "churn → neglect → churn", "#7a9e7e"],
+    ["BALANCING", "price ↑ → demand ↓ → price ↓", "#c47c5a"],
+  ]) {
+    const row = F({ dir: "VERTICAL", gap: 3, pad: [6, 9], radius: 9, fill: "#f5efe6", stroke: accent, strokeW: 0 });
+    row.layoutAlign = "STRETCH";
+    add(row, T(type, { weight: 700, size: 9.5, tracking: 6, color: accent }), T(label, { size: 12, color: "#2d2416", width: innerW }));
+    add(p, row);
+  }
+  add(p, T("Leverage points", { weight: 600, size: 12.5, color: "#6b5c4e" }));
+  const lev = F({ dir: "VERTICAL", gap: 2, pad: [6, 9], radius: 9, fill: "#f5efe6" });
+  lev.layoutAlign = "STRETCH";
+  add(lev, T("Retention ownership", { weight: 600, size: 12.5, color: "#2d2416" }), T("in 2 loops · 3 outgoing", { size: 11, color: "#6b5c4e", width: innerW }));
+  add(p, lev);
+  return p;
+}
+
 // ---------------------------------------------------------------- foundations page
 function buildFoundations(page) {
   const root = F({ dir: "VERTICAL", gap: 44, pad: 56, fill: "#f5efe6", name: "Foundations" });
@@ -336,6 +413,23 @@ function buildComponents(page) {
     findingNode({ cat: "Systems", title: "No owner for retention", accent: "#7a9e7e", dark: true })
   );
   add(root, group("Finding nodes", nodes));
+
+  // systems-model nodes (actor / factor)
+  const kinds = F({ dir: "HORIZONTAL", gap: 16, align: "MIN" });
+  add(
+    kinds,
+    kindNode({ kind: "actor", title: "Power users" }),
+    kindNode({ kind: "factor", title: "Switching cost" })
+  );
+  add(root, group("Systems nodes — actor / factor", kinds));
+
+  // signed causal links
+  const links = F({ dir: "HORIZONTAL", gap: 18, align: "CENTER" });
+  add(links, signedLink("+", "amplifies"), signedLink("-", "contradicts"), signedLink("+", "relates to"));
+  add(root, group("Signed causal links", links));
+
+  // deterministic system analysis
+  add(root, group("System analysis (loops + leverage)", systemAnalysis(360)));
 
   // framework chips
   const chips = F({ dir: "HORIZONTAL", gap: 12 });
@@ -530,14 +624,19 @@ function workspaceScreen() {
   canvas.appendChild(line(150, 130, 360, 250));
   canvas.appendChild(line(560, 120, 400, 250));
   canvas.appendChild(line(220, 380, 380, 300));
-  const a = findingNode({ cat: "Stakeholders", title: "Power users feel unheard", accent: "#c47c5a", w: 220 });
-  const b = findingNode({ cat: "PESTEL · forces", title: "Switching cost is low", accent: "#7bbfb5", w: 220 });
+  const a = kindNode({ kind: "actor", title: "Power users", w: 210 });
+  const b = kindNode({ kind: "factor", title: "Switching cost", w: 200 });
   const c = findingNode({ cat: "Pattern · scan", title: "Churn feeds neglect — a reinforcing loop", scan: true, w: 240 });
-  const d = findingNode({ cat: "Root cause", title: "No owner for retention", accent: "#7a9e7e", w: 220 });
+  const d = kindNode({ kind: "factor", title: "Retention ownership", w: 200 });
   canvas.appendChild(a); a.x = 40; a.y = 60;
   canvas.appendChild(b); b.x = 470; b.y = 50;
   canvas.appendChild(c); c.x = 250; c.y = 240;
   canvas.appendChild(d); d.x = 60; d.y = 360;
+  // signed-link pills on the connections
+  const e1 = signedLink("+", "amplifies");
+  const e2 = signedLink("-", "contradicts");
+  canvas.appendChild(e1); e1.x = 250; e1.y = 150;
+  canvas.appendChild(e2); e2.x = 430; e2.y = 150;
   screen.appendChild(canvas); canvas.x = 380; canvas.y = 48;
 
   // right Surface panel
@@ -548,17 +647,26 @@ function workspaceScreen() {
   const stop = F({ dir: "VERTICAL", gap: 14 });
   stop.layoutAlign = "STRETCH";
   add(stop, T("Surface", { family: DISPLAY, weight: 700, size: 26, color: "#2d2416" }));
-  // confirm card
+  // deterministic system-analysis panel
+  add(stop, systemAnalysis(328));
+  // confirm card (carousel 1 / 4)
+  add(stop, T("1 / 4", { family: MONO, weight: 600, size: 12.5, color: "#6b5c4e" }));
   const confirm = findingNode({ cat: "Value Proposition", title: "Trust they'll get paid", body: "Carpenters value reliable, on-time payment as much as the work itself — late pay erodes the relationship fast.", accent: "#c47c5a", w: 320 });
   add(stop, confirm);
   const actions = F({ dir: "HORIZONTAL", gap: 8 });
   add(actions, btnCTA("Keep it"), btnGhost("Tweak"), btnGhost("Toss"));
   add(stop, actions);
   add(surf, stop);
-  const scan = F({ dir: "HORIZONTAL", pad: [13, 24], radius: 10, fill: "#5c8a62", align: "CENTER", justify: "CENTER" });
+  const foot = F({ dir: "VERTICAL", gap: 8 });
+  foot.layoutAlign = "STRETCH";
+  const analyze = F({ dir: "HORIZONTAL", pad: [12, 24], radius: 10, fill: "#7bbfb5", align: "CENTER", justify: "CENTER" });
+  analyze.layoutAlign = "STRETCH";
+  add(analyze, T("Analyze system", { weight: 600, size: 15, color: "#0d2137" }));
+  const scan = F({ dir: "HORIZONTAL", pad: [12, 24], radius: 10, fill: "#5c8a62", align: "CENTER", justify: "CENTER" });
   scan.layoutAlign = "STRETCH";
-  add(scan, T("Scan for patterns", { weight: 600, size: 15, color: "#ffffff" }));
-  add(surf, scan);
+  add(scan, T("Scan for Patterns", { weight: 600, size: 15, color: "#ffffff" }));
+  add(foot, analyze, scan);
+  add(surf, foot);
   screen.appendChild(surf); surf.x = W - 360; surf.y = 48;
 
   return screen;
