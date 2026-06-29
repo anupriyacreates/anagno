@@ -16,9 +16,11 @@ import type {
   FrameworkDef,
   PendingFinding,
   RawFinding,
+  Sign,
 } from "../types";
 import { BUILT_IN_FRAMEWORKS, makeCustomFramework } from "../data/frameworks";
 import { diveFramework, scanPatterns } from "../api";
+import { analyzeSystem, type SystemAnalysis } from "../lib/systems";
 import Board from "./Board";
 import DiverPanel from "./DiverPanel";
 import AISurface from "./AISurface";
@@ -124,6 +126,8 @@ export default function Workspace({
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [manualEdges, setManualEdges] = useState<Edge[]>([]);
   const [edgeLabels, setEdgeLabels] = useState<Record<string, string>>({});
+  const [edgeSigns, setEdgeSigns] = useState<Record<string, Sign>>({});
+  const [analysis, setAnalysis] = useState<SystemAnalysis | null>(null);
   const [queue, setQueue] = useState<PendingFinding[]>([]);
   const [diving, setDiving] = useState(false);
   const [surfaceOpen, setSurfaceOpen] = useState(true);
@@ -188,16 +192,29 @@ export default function Workspace({
   const derivedEdges = useMemo(() => buildEdges(nodes), [nodes]);
   const edges = useMemo(
     () =>
-      [...derivedEdges, ...manualEdges].map((e) =>
-        edgeLabels[e.id] !== undefined ? { ...e, label: edgeLabels[e.id] } : e,
-      ),
-    [derivedEdges, manualEdges, edgeLabels],
+      [...derivedEdges, ...manualEdges].map((e) => {
+        const label = edgeLabels[e.id] ?? e.label;
+        const sign: Sign =
+          edgeSigns[e.id] ?? (e.label === "contradicts" ? "-" : "+");
+        return {
+          ...e,
+          label,
+          data: { ...(e.data ?? {}), sign },
+          style: {
+            ...(e.style ?? {}),
+            stroke: sign === "-" ? "#c47c5a" : REEF,
+          },
+        };
+      }),
+    [derivedEdges, manualEdges, edgeLabels, edgeSigns],
   );
 
   const edgeActions = useMemo(
     () => ({
       onLabelChange: (id: string, label: string) =>
         setEdgeLabels((m) => ({ ...m, [id]: label })),
+      onSetSign: (id: string, sign: Sign) =>
+        setEdgeSigns((m) => ({ ...m, [id]: sign })),
     }),
     [],
   );
@@ -379,6 +396,42 @@ export default function Workspace({
     setChatSeed(`Let's build on this finding — "${f.title}": ${f.content}`);
     setLeftOpen(true);
   }
+
+  // ---------- systems analysis (deterministic) ----------
+  function analyzeNow() {
+    setAnalysis(analyzeSystem(nodesRef.current, edges));
+    setSurfaceOpen(true);
+  }
+  function addInsightNode(title: string, content: string) {
+    pushHistory();
+    setNodes((ns) => [
+      ...ns,
+      {
+        id: uid(),
+        type: "diver",
+        position: placeIn(ns, "__patterns__"),
+        data: {
+          title,
+          category: "From analysis",
+          content,
+          color: "#5c8a62",
+          flag: "none",
+          frameworkId: "__patterns__",
+          connectsTo: [],
+          connectionType: "feeds into",
+          isInsight: true,
+          rotation: rot(),
+          appearDelay: 0,
+          locked: false,
+          kind: "finding",
+        } as DiverNodeData,
+      },
+    ]);
+  }
+  function highlightNodes(ids: string[]) {
+    const set = new Set(ids);
+    setNodes((ns) => ns.map((n) => ({ ...n, selected: set.has(n.id) })));
+  }
   function promote(items: PendingFinding[]) {
     if (!items.length) return;
     setQueue((q) => [...q, ...items]);
@@ -501,16 +554,22 @@ export default function Workspace({
         style: { width: 200, height: 160 },
         data: { kind: "sticky", text: "", color: "#f3e2a9", locked: false } as ElementData,
       };
-    } else if (kind === "finding") {
+    } else if (kind === "finding" || kind === "actor" || kind === "factor") {
+      const preset =
+        kind === "actor"
+          ? { title: "New actor", category: "Actor", color: "#c47c5a" }
+          : kind === "factor"
+            ? { title: "New factor", category: "Factor", color: "#7bbfb5" }
+            : { title: "New insight", category: "Insight", color: REEF };
       node = {
         id,
         type: "diver",
         position,
         data: {
-          title: "New insight",
-          category: "Insight",
+          title: preset.title,
+          category: preset.category,
           content: "",
-          color: REEF,
+          color: preset.color,
           flag: "none",
           frameworkId: "__manual__",
           connectsTo: [],
@@ -518,6 +577,10 @@ export default function Workspace({
           rotation: rot(),
           appearDelay: 0,
           locked: false,
+          kind,
+          ...(kind === "actor"
+            ? { power: "med", interest: "med", stance: "neutral" }
+            : {}),
         } as DiverNodeData,
       };
     } else {
@@ -842,6 +905,10 @@ export default function Workspace({
             onToss={tossFinding}
             onDiscuss={discussFinding}
             onScan={scan}
+            analysis={analysis}
+            onAnalyze={analyzeNow}
+            onKeepInsight={addInsightNode}
+            onHighlight={highlightNodes}
             onClose={() => setSurfaceOpen(false)}
           />
         ) : (

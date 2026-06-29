@@ -5,10 +5,45 @@ export type AddKind =
   | "text"
   | "sticky"
   | "finding"
+  | "actor"
+  | "factor"
   | "shape-rect"
   | "shape-ellipse"
   | "shape-triangle"
   | "shape-diamond";
+
+const NODE_KINDS: { kind: AddKind; label: string; path: React.ReactNode }[] = [
+  {
+    kind: "finding",
+    label: "Insight",
+    path: (
+      <>
+        <rect x="3" y="6" width="18" height="12" rx="3" />
+        <path d="M7 6v12" />
+      </>
+    ),
+  },
+  {
+    kind: "actor",
+    label: "Actor",
+    path: (
+      <>
+        <circle cx="12" cy="8" r="3.2" />
+        <path d="M5.5 19a6.5 6.5 0 0 1 13 0" />
+      </>
+    ),
+  },
+  {
+    kind: "factor",
+    label: "Factor",
+    path: (
+      <>
+        <circle cx="12" cy="12" r="8" />
+        <path d="M8.5 13.5l2.5-3 2 2 2.5-3" />
+      </>
+    ),
+  },
+];
 
 interface Props {
   tool: Tool;
@@ -58,6 +93,8 @@ export default function CanvasToolbar({
 }: Props) {
   const [shapeOpen, setShapeOpen] = useState(false);
   const shapeRef = useRef<HTMLDivElement>(null);
+  const [nodeOpen, setNodeOpen] = useState(false);
+  const nodeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!shapeOpen) return;
@@ -74,6 +111,22 @@ export default function CanvasToolbar({
       document.removeEventListener("keydown", onKey);
     };
   }, [shapeOpen]);
+
+  useEffect(() => {
+    if (!nodeOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (!nodeRef.current?.contains(e.target as Node)) setNodeOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setNodeOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [nodeOpen]);
 
   return (
     <div className="canvas-toolbar">
@@ -124,17 +177,39 @@ export default function CanvasToolbar({
           <path d="M14 19v-5h5" />
         </I>
       </button>
-      <button
-        className="tool"
-        onClick={() => onAdd("finding")}
-        title="Insight card"
-        aria-label="Add an insight card"
-      >
-        <I>
-          <rect x="3" y="6" width="18" height="12" rx="3" />
-          <path d="M7 6v12" />
-        </I>
-      </button>
+      <div className="tool-pop" ref={nodeRef}>
+        <button
+          className={`tool ${nodeOpen ? "on" : ""}`}
+          onClick={() => setNodeOpen((o) => !o)}
+          title="Add a node (insight, actor, factor)"
+          aria-label="Add a node"
+          aria-haspopup="menu"
+          aria-expanded={nodeOpen}
+        >
+          <I>
+            <rect x="3" y="6" width="18" height="12" rx="3" />
+            <path d="M7 6v12" />
+          </I>
+        </button>
+        {nodeOpen && (
+          <div className="tool-flyout wide" role="menu">
+            {NODE_KINDS.map((n) => (
+              <button
+                key={n.kind}
+                role="menuitem"
+                className="tool-flyout-row"
+                onClick={() => {
+                  onAdd(n.kind);
+                  setNodeOpen(false);
+                }}
+              >
+                <I>{n.path}</I>
+                <span>{n.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="tool-pop" ref={shapeRef}>
         <button
           className={`tool ${shapeOpen ? "on" : ""}`}

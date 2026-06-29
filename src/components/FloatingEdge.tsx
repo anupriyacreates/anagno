@@ -17,8 +17,10 @@ export default function FloatingEdge({
   style,
   label,
   selected,
+  data,
 }: EdgeProps) {
-  const { onLabelChange } = useEdgeActions();
+  const { onLabelChange, onSetSign } = useEdgeActions();
+  const sign = (data as { sign?: "+" | "-" } | undefined)?.sign === "-" ? "-" : "+";
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
   const [editing, setEditing] = useState(false);
@@ -67,30 +69,40 @@ export default function FloatingEdge({
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
             }}
           >
-            {editing ? (
-              <input
-                ref={inputRef}
-                className="edge-label-input"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onBlur={commit}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") commit();
-                  if (e.key === "Escape") {
-                    setDraft(text);
-                    setEditing(false);
-                  }
-                }}
-              />
-            ) : (
+            <span className="edge-label-row">
               <button
-                className={`edge-label-text ${text ? "" : "empty"}`}
-                onDoubleClick={() => setEditing(true)}
-                title="Double-click to edit the connection"
+                className={`edge-sign sign-${sign === "+" ? "pos" : "neg"}`}
+                onClick={() => onSetSign(id, sign === "+" ? "-" : "+")}
+                title={`Polarity ${sign} — click to flip (drives loop type)`}
+                aria-label="Toggle connection polarity"
               >
-                {text || "label"}
+                {sign}
               </button>
-            )}
+              {editing ? (
+                <input
+                  ref={inputRef}
+                  className="edge-label-input"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onBlur={commit}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") commit();
+                    if (e.key === "Escape") {
+                      setDraft(text);
+                      setEditing(false);
+                    }
+                  }}
+                />
+              ) : (
+                <button
+                  className={`edge-label-text ${text ? "" : "empty"}`}
+                  onDoubleClick={() => setEditing(true)}
+                  title="Double-click to edit the connection"
+                >
+                  {text || "label"}
+                </button>
+              )}
+            </span>
           </div>
         </EdgeLabelRenderer>
       )}

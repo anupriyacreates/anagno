@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { PendingFinding, RawFinding } from "../types";
+import type { SystemAnalysis } from "../lib/systems";
 import PanelIcon from "./PanelIcon";
 import WaveLoader from "./WaveLoader";
 
@@ -15,6 +16,10 @@ interface Props {
   onToss: (id: string) => void;
   onDiscuss: (p: PendingFinding) => void;
   onScan: () => void;
+  analysis: SystemAnalysis | null;
+  onAnalyze: () => void;
+  onKeepInsight: (title: string, content: string) => void;
+  onHighlight: (ids: string[]) => void;
   onClose: () => void;
 }
 
@@ -140,6 +145,10 @@ export default function AISurface({
   onToss,
   onDiscuss,
   onScan,
+  analysis,
+  onAnalyze,
+  onKeepInsight,
+  onHighlight,
   onClose,
 }: Props) {
   const [index, setIndex] = useState(0);
@@ -187,6 +196,75 @@ export default function AISurface({
       )}
 
       <div className="surface-body">
+        {analysis && (
+          <div className="surface-analysis">
+            <div className="sa-head">System analysis</div>
+
+            <div className="sa-sub">
+              Feedback loops <span>{analysis.loops.length}</span>
+            </div>
+            {analysis.loops.length ? (
+              analysis.loops.map((loop) => (
+                <div key={loop.id} className={`sa-loop ${loop.type === "R" ? "r" : "b"}`}>
+                  <button
+                    className="sa-loop-main"
+                    onClick={() => onHighlight(loop.members)}
+                    title="Highlight this loop on the canvas"
+                  >
+                    <span className="sa-badge">
+                      {loop.type === "R" ? "Reinforcing" : "Balancing"}
+                    </span>
+                    <span className="sa-loop-label">{loop.label}</span>
+                  </button>
+                  <button
+                    className="sa-keep"
+                    onClick={() =>
+                      onKeepInsight(
+                        `${loop.type === "R" ? "Reinforcing" : "Balancing"} loop`,
+                        loop.label,
+                      )
+                    }
+                  >
+                    keep
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="sa-empty">
+                No loops yet — connect nodes into a cycle (signed +/− links).
+              </p>
+            )}
+
+            <div className="sa-sub">
+              Leverage points <span>{analysis.leverage.length}</span>
+            </div>
+            {analysis.leverage.length ? (
+              analysis.leverage.map((lp) => (
+                <div key={lp.nodeId} className="sa-lev">
+                  <button
+                    className="sa-lev-main"
+                    onClick={() => onHighlight([lp.nodeId])}
+                    title="Highlight on the canvas"
+                  >
+                    <span className="sa-lev-title">{lp.title}</span>
+                    <span className="sa-lev-reason">{lp.reason}</span>
+                  </button>
+                  <button
+                    className="sa-keep"
+                    onClick={() =>
+                      onKeepInsight("Leverage point", `${lp.title} — ${lp.reason}`)
+                    }
+                  >
+                    keep
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="sa-empty">Add connections to surface leverage points.</p>
+            )}
+          </div>
+        )}
+
         {current ? (
           <ConfirmCard
             key={current.id}
@@ -222,6 +300,18 @@ export default function AISurface({
             if (e.key === "Enter" && canScan && !scanning) onScan();
           }}
         />
+        <button
+          className="scan-btn analyze"
+          onClick={onAnalyze}
+          disabled={!canScan}
+          title={
+            canScan
+              ? "Compute feedback loops & leverage points (no AI)"
+              : "Add some nodes first"
+          }
+        >
+          Analyze system
+        </button>
         <button
           className="scan-btn"
           onClick={onScan}
