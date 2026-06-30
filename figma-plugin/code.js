@@ -162,6 +162,104 @@ function dot(size, color) {
   return e;
 }
 
+// Wrap an auto-layout frame inside a plain (NONE-layout) frame.
+// An auto-layout frame appended *directly* to a page does not reflow its
+// hug-height and collapses to ~0px; nested inside a plain frame it sizes
+// correctly (same pattern the Workspace/Login screens already use).
+// Re-stack an auto-layout column's children as hand-positioned bands inside a
+// plain (NONE-layout) frame. Some Figma builds don't grow a hug-height column
+// that was seeded with resize(W, 1) — it stays 1px tall and clips every band.
+// Each band lays out correctly on its own, so we just reparent and place them.
+// stretch=true forces each band to the full width (landing/projects sections);
+// stretch=false keeps natural widths (foundations/components specimen columns).
+function bake(src, opts) {
+  opts = opts || {};
+  const stretch = !!opts.stretch;
+  const gap = src.itemSpacing || 0;
+  const padL = src.paddingLeft || 0;
+  const padR = src.paddingRight || 0;
+  const padT = src.paddingTop || 0;
+  const padB = src.paddingBottom || 0;
+  const innerW = Math.max(src.width - padL - padR, 1);
+
+  const root = figma.createFrame();
+  root.name = src.name || "frame";
+  root.clipsContent = false;
+  root.fills = src.fills && src.fills.length ? src.fills.map((p) => Object.assign({}, p)) : [];
+
+  const kids = src.children.slice();
+  let y = padT;
+  let maxW = 0;
+  for (const k of kids) {
+    root.appendChild(k);
+    if (stretch && k.layoutMode === "HORIZONTAL") {
+      k.primaryAxisSizingMode = "FIXED";
+      k.resize(innerW, Math.max(k.height, 1));
+    } else if (stretch && k.layoutMode === "VERTICAL") {
+      k.counterAxisSizingMode = "FIXED";
+      k.resize(innerW, Math.max(k.height, 1));
+    }
+    k.x = padL;
+    k.y = y;
+    y += k.height + gap;
+    if (k.width > maxW) maxW = k.width;
+  }
+  const totalW = stretch ? Math.max(src.width, 1) : maxW + padL + padR;
+  root.resize(Math.max(totalW, 1), Math.max(y - gap + padB, 1));
+  src.remove();
+  return root;
+}
+
+// Pin an explicit height on a hug-height auto-layout frame. Some Figma builds
+// leave the height at the seeded resize(W, 1) instead of growing to fit
+// children, which clips the content. Call this AFTER children are added and the
+// width is set; it computes the real height from the (already-correct) children.
+function fixH(f) {
+  if (!f || !f.layoutMode || f.layoutMode === "NONE") return;
+  const padT = f.paddingTop || 0;
+  const padB = f.paddingBottom || 0;
+  const padL = f.paddingLeft || 0;
+  const padR = f.paddingRight || 0;
+  const kids = f.children;
+  if (f.layoutWrap === "WRAP") {
+    const innerW = Math.max(f.width - padL - padR, 1);
+    const gap = f.itemSpacing || 0;
+    const vgap = f.counterAxisSpacing == null ? gap : f.counterAxisSpacing;
+    let x = 0;
+    let rowH = 0;
+    let total = 0;
+    let first = true;
+    for (const k of kids) {
+      if (!first && x + gap + k.width > innerW) {
+        total += rowH + vgap;
+        x = 0;
+        rowH = 0;
+        first = true;
+      }
+      x += (first ? 0 : gap) + k.width;
+      if (k.height > rowH) rowH = k.height;
+      first = false;
+    }
+    total += rowH;
+    f.counterAxisSizingMode = "FIXED";
+    f.resize(f.width, Math.max(total + padT + padB, 1));
+    return;
+  }
+  let h;
+  if (f.layoutMode === "HORIZONTAL") {
+    let mx = 0;
+    for (const k of kids) if (k.height > mx) mx = k.height;
+    h = mx + padT + padB;
+    f.counterAxisSizingMode = "FIXED";
+  } else {
+    const gap = f.itemSpacing || 0;
+    h = padT + padB;
+    for (let i = 0; i < kids.length; i++) h += kids[i].height + (i ? gap : 0);
+    f.primaryAxisSizingMode = "FIXED";
+  }
+  f.resize(f.width, Math.max(h, 1));
+}
+
 // ---------------------------------------------------------------- styles
 function makePaintStyles(prefix, palette) {
   for (const k of Object.keys(palette)) {
@@ -240,6 +338,7 @@ function fwChip(name, count, color) {
   const cnt = F({ dir: "HORIZONTAL", pad: [2, 8], radius: 999, fill: "#f5efe6", align: "CENTER" });
   add(cnt, T(String(count), { family: MONO, weight: 600, size: 11, color: "#5c8a62" }));
   add(c, d, nm, cnt);
+  fixH(c);
   return c;
 }
 function bubble(text, who) {
@@ -357,6 +456,7 @@ function linkCard() {
   meta.layoutGrow = 1;
   add(meta, T("Why modular homes stall — a field study", { weight: 600, size: 13, color: "#2d2416", line: 130, width: 180 }), T("modulushousing.com", { family: MONO, size: 10.5, color: "#6b5c4e" }));
   add(c, thumb, meta);
+  fixH(c);
   return c;
 }
 
@@ -375,6 +475,8 @@ function surfaceCard() {
   const bring = F({ dir: "HORIZONTAL", pad: [7, 12], radius: 9, stroke: "#d6cfc7", strokeW: 1, align: "CENTER" });
   add(bring, T("Bring into chat", { weight: 600, size: 12.5, color: "#5c8a62" }));
   add(wrap, bring);
+  fixH(bring);
+  fixH(wrap);
   return wrap;
 }
 
@@ -392,6 +494,8 @@ function projectCard(name, desc, edited, hue) {
   body.layoutAlign = "STRETCH";
   add(body, T(name, { weight: 600, size: 18, color: "#2d2416" }), T(desc, { size: 12.5, color: "#6b5c4e", line: 140, width: 228 }), T(edited, { size: 11, color: "#6b5c4e", opacity: 0.85 }));
   add(c, banner, body);
+  fixH(body);
+  fixH(c);
   return c;
 }
 function newProjectCard() {
@@ -434,6 +538,8 @@ function loginCard() {
   cta.layoutAlign = "STRETCH";
   add(cta, T("Sign in", { weight: 600, size: 15, color: "#ffffff" }));
   add(card, sp2, cta);
+  fixH(cta);
+  fixH(card);
   return card;
 }
 
@@ -466,7 +572,9 @@ function buildFoundations(page) {
       add(chip, sw, T(k, { weight: 600, size: 12.5, color: ink }), T(palette[k], { family: MONO, size: 11, color: ink, opacity: 0.6 }));
       add(grid, chip);
     }
+    fixH(grid);
     add(sec, grid);
+    fixH(sec);
     add(root, sec);
   }
 
@@ -489,9 +597,10 @@ function buildFoundations(page) {
   }
   add(root, typ);
 
-  page.appendChild(root);
-  root.x = 0;
-  root.y = 0;
+  const wrap = bake(root, { stretch: false });
+  page.appendChild(wrap);
+  wrap.x = 0;
+  wrap.y = 0;
 }
 
 // ---------------------------------------------------------------- components page
@@ -548,6 +657,7 @@ function buildComponents(page) {
     ph.counterAxisSizingMode = "AUTO";
     const tt = T(label, { family: DISPLAY, weight: 700, size: 26, color: ink });
     add(ph, tt, T("⌄", { weight: 600, size: 16, color: ink, opacity: 0.7 }));
+    fixH(ph);
     add(heads, ph);
   }
   add(root, group("Panel headers (Caveat)", heads));
@@ -574,7 +684,9 @@ function buildComponents(page) {
   add(send, T("↑", { weight: 700, size: 14, color: "#ffffff" }));
   add(bar, lensBtn, send);
   add(comp, bar);
+  fixH(comp);
   add(chat, comp);
+  fixH(chat);
   add(root, group("Chat + lens composer", chat));
 
   // canvas elements
@@ -585,9 +697,10 @@ function buildComponents(page) {
   // surface confirm card
   add(root, group("Surface — confirm card (keep / tweak / toss)", surfaceCard()));
 
-  page.appendChild(root);
-  root.x = 0;
-  root.y = 0;
+  const wrap = bake(root, { stretch: false });
+  page.appendChild(wrap);
+  wrap.x = 0;
+  wrap.y = 0;
 }
 
 // ---------------------------------------------------------------- screens page
@@ -618,6 +731,7 @@ function cardThree(items) {
     if (c !== undefined)
       add(card, T(a, { family: MONO, size: 12.5, color: "#5c8a62" }), T(b, { weight: 600, size: 18, color: "#2d2416", width: innerW }), T(c, { size: 14, color: "#6b5c4e", line: 155, width: innerW }));
     else add(card, T(a, { weight: 600, size: 18, color: "#2d2416", width: innerW }), T(b, { size: 14, color: "#6b5c4e", line: 155, width: innerW }));
+    fixH(card);
     add(row, card);
   }
   return row;
@@ -739,7 +853,7 @@ function landingScreen() {
   add(footer, T("Anagno — Problem discovery, from the surface to the reef.", { size: 13, color: "#6b5c4e" }), T("© 2026 Anagno", { size: 12.5, color: "#6b5c4e" }));
   add(screen, footer);
 
-  return screen;
+  return bake(screen, { stretch: true });
 }
 
 function loginScreen() {
@@ -782,7 +896,7 @@ function projectsScreen() {
   );
   add(main, grid);
   add(screen, main);
-  return screen;
+  return bake(screen, { stretch: true });
 }
 
 function workspaceScreen() {
@@ -918,6 +1032,19 @@ function buildScreens(page) {
 (async () => {
   await loadFonts();
 
+  // Remember pages from earlier runs so we can clear them afterwards — otherwise
+  // the plugin appends a *second* set and you may be staring at the old, broken
+  // "03 Screens" page thinking nothing changed.
+  const stale = figma.root.children.filter((p) =>
+    /^0[123] (Foundations|Components|Screens)$/.test(p.name)
+  );
+
+  // Drop previously generated Anagno styles so re-runs don't pile up duplicates.
+  try {
+    for (const s of figma.getLocalPaintStyles()) if (s.name.indexOf("Anagno/") === 0) s.remove();
+    for (const s of figma.getLocalTextStyles()) if (s.name.indexOf("Anagno/") === 0) s.remove();
+  } catch (e) {}
+
   makePaintStyles("Light", LIGHT);
   makePaintStyles("Dark", DARK);
   makeTextStyles();
@@ -934,7 +1061,16 @@ function buildScreens(page) {
   pScreens.name = "03 Screens";
   buildScreens(pScreens);
 
-  figma.currentPage = pFound;
-  figma.viewport.scrollAndZoomIntoView(pFound.children);
-  figma.closePlugin("Anagno Design Kit generated ✓  (3 pages: Foundations, Components, Screens)");
+  // Land on the freshly built Screens page so there's no chance of viewing a stale one.
+  figma.currentPage = pScreens;
+  figma.viewport.scrollAndZoomIntoView(pScreens.children);
+
+  // Remove the stale pages from prior runs (can't remove the current page).
+  for (const p of stale) {
+    try {
+      if (p.id !== figma.currentPage.id) p.remove();
+    } catch (e) {}
+  }
+
+  figma.closePlugin("Anagno Design Kit regenerated ✓ — showing 03 Screens (old pages cleared)");
 })();
