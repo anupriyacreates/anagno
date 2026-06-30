@@ -8,9 +8,12 @@
     "dev": "concurrently -n server,client -c blue,green \"npm:dev:server\" \"npm:dev:client\"",
     "dev:server": "tsx watch server/index.ts",
     "dev:client": "vite",
+    "dev:demo": "vite --mode demo",
     "build": "vite build",
+    "build:demo": "vite build --mode demo",
     "start": "tsx server/index.ts",
     "preview": "vite preview",
+    "preview:demo": "vite preview --mode demo",
     "typecheck": "tsc --noEmit"
   },
   "engines": {

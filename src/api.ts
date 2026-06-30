@@ -5,6 +5,8 @@ import type {
   ChatMessage,
   RawFinding,
 } from "./types";
+import { DEMO_MODE } from "./demo/demoMode";
+import * as mock from "./demo/mockApi";
 
 async function postJSON<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
@@ -36,6 +38,7 @@ export function diveFramework(
   existingNodes: ExistingNode[],
   focus?: string,
 ): Promise<DiveResponse> {
+  if (DEMO_MODE) return mock.diveFrameworkMock(context, framework, existingNodes, focus);
   return postJSON<DiveResponse>("/api/dive", {
     context,
     framework: { name: framework.name, description: framework.description },
@@ -49,6 +52,7 @@ export function scanPatterns(
   nodes: ExistingNode[],
   focus?: string,
 ): Promise<ScanResponse> {
+  if (DEMO_MODE) return mock.scanPatternsMock(context, nodes, focus);
   return postJSON<ScanResponse>("/api/scan", { context, nodes, focus });
 }
 
@@ -57,6 +61,7 @@ export async function streamChat(
   payload: { context: string; messages: ChatMessage[]; nodes: ExistingNode[] },
   onToken: (chunk: string) => void,
 ): Promise<void> {
+  if (DEMO_MODE) return mock.streamChatMock(payload, onToken);
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -87,6 +92,7 @@ export function extractNodes(
   text: string,
   nodes: ExistingNode[],
 ): Promise<{ findings: RawFinding[] }> {
+  if (DEMO_MODE) return mock.extractNodesMock(context, text, nodes);
   return postJSON<{ findings: RawFinding[] }>("/api/extract", {
     context,
     text,
@@ -99,6 +105,7 @@ export function getFollowups(
   messages: ChatMessage[],
   nodes: ExistingNode[],
 ): Promise<{ suggestions: string[] }> {
+  if (DEMO_MODE) return mock.getFollowupsMock(context, messages, nodes);
   return postJSON<{ suggestions: string[] }>("/api/followups", {
     context,
     messages,
@@ -117,5 +124,6 @@ export interface UnfurlResult {
 }
 
 export function unfurl(url: string): Promise<UnfurlResult> {
+  if (DEMO_MODE) return mock.unfurlMock(url);
   return postJSON<UnfurlResult>("/api/unfurl", { url });
 }

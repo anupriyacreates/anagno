@@ -1,5 +1,7 @@
 import { useState } from "react";
 import ThemeToggle from "./components/ThemeToggle";
+import { DEMO_MODE } from "./demo/demoMode";
+import { DEMO_PROJECT } from "./demo/demoProject";
 
 interface Props {
   onOpen: (p: { id: string; name: string; context: string }) => void;
@@ -48,6 +50,10 @@ export default function Projects({
   const [name, setName] = useState("");
   const [context, setContext] = useState("");
 
+  // In showcase mode, feature the single demo project (all canned content
+  // matches its topic). The real app shows the full sample set.
+  const projectList = DEMO_MODE ? [DEMO_PROJECT] : PROJECTS;
+
   function create() {
     const id =
       globalThis.crypto?.randomUUID?.() ??
@@ -86,7 +92,7 @@ export default function Projects({
             New project
           </button>
 
-          {PROJECTS.map((p) => (
+          {projectList.map((p) => (
             <button
               key={p.name}
               className="project-card"
